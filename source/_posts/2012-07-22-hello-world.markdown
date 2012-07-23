@@ -11,3 +11,4 @@ categories:
 <img src="/images/ali.jpg" alt="Ali" />
 
     int a, b;
+    printf("%d\n", a + b);
