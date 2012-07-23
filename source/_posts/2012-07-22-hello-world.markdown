@@ -10,3 +10,4 @@ categories:
 <br />
 <img src="/images/ali.jpg" alt="Ali" />
 
+    int a, b;
