@@ -48,3 +48,7 @@ code6同学很早就用github搞了一个博客，[猛击这里](http://code6.gi
 ##C.本地预览
 	rake preview
 浏览器中输入http://localhost:4000
+##附录(参考链接)
+1. [Blog = GitHub + Octopress](http://mrzhang.me/blog/blog-equals-github-plus-octopress.html)<p>
+2. [Octopress: a blogging framework for hackers](http://lyhdev.com/note:octopress)<p>
+3. [Ruby开源项目介绍(1)：octopress——像黑客一样写博客](http://www.yangzhiping.com/tech/octopress.html)<p>
