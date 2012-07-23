@@ -1,0 +1,10 @@
+---
+layout: post
+title: "chinese"
+date: 2012-07-23 01:46
+comments: true
+categories: 
+---
+
+中文中文中文</p>
+汉字汉字汉字
