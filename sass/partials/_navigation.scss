@@ -5,8 +5,8 @@ body > nav {
   border: {
     top: 1px solid $nav-border-top;
     bottom: 1px solid $nav-border-bottom; }
-  padding-top: .15em;
-  padding-bottom: .15em;
+  padding-top: .35em;
+  padding-bottom: .35em;
   form {
     @include background-clip(padding-box);
     margin: 0; padding: 0;
@@ -14,7 +14,7 @@ body > nav {
       padding: .3em .5em 0;
       font-size: .85em;
       font-family: $sans;
-      line-height: 1em;
+      line-height: 1.1em;
       width: 95%;
       @include border-radius(.5em);
       @include background-clip(padding-box);
@@ -51,7 +51,6 @@ body > nav {
     }
     ul li {
       margin: 0;
-      font-size: 0.9em;
     }
     a {
       @include link-colors($nav-color, $nav-color-hover, $visited: $nav-color);
