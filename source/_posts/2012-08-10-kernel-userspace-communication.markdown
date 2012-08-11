@@ -7,5 +7,5 @@ categories:
 ---
 
 ## 1. netlink socket
-  A. 添加新的netlink类型
-  B. 使用通用netlink类型通信(generic netlink)
+<br>  A. 添加新的netlink类型
+<br>  B. 使用通用netlink类型通信(generic netlink)
