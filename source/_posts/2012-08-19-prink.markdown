@@ -1,0 +1,24 @@
+---
+layout: post
+title: "linux内核printk打印特殊内容"
+date: 2012-08-19 22:33
+comments: true
+categories: 
+---
+## 1. 格式化打印MAC地址
+	u_int8_t mac[6] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+	printk("%pM\n", mac);
+	/* 01:02:03:04:05:06 */
+	
+## 2. 格式化打印IP地址
+	u_int32_t ip = ((1 << 24) + (2 << 16) + (3 << 8) + 4);
+	/* 默认根据网络字节序打印 */
+	printk("%pI4\n", &ip);
+	/* 1.2.3.4 */	
+	
+## 2. 格式化打印IPv6地址
+	struct in6_addr ipv6 = IN6ADDR_LINKLOCAL_ALLNODES_INIT;
+	printk("%pI6c\n", &ipv6);
+	/* ff02::1 */		
+	
+[http://www.kernel.org/doc/Documentation/printk-formats.txt](http://www.kernel.org/doc/Documentation/printk-formats.txt)
