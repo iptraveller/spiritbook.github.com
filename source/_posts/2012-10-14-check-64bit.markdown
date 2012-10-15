@@ -1,0 +1,56 @@
+---
+layout: post
+title: "编译时判断系统32位/64位"
+date: 2012-10-14 21:33
+comments: true
+categories: 
+---
+
+[http://stackoverflow.com/questions/1505582/determining-32-vs-64-bit-in-c](http://stackoverflow.com/questions/1505582/determining-32-vs-64-bit-in-c)
+	#include <limits.h>
+	#if ((ULONG_MAX) == (UINT_MAX))
+	 #define CPU_BITS 32
+	#else
+	 #define CPU_BITS 64
+	#endif
+
+进入<limits.h>看代码，定义如下：
+	/* Minimum and maximum values a `signed long int' can hold.  */
+	#  if __WORDSIZE == 64
+	#   define LONG_MAX     9223372036854775807L
+	#  else
+	#   define LONG_MAX     2147483647L
+	#  endif
+
+而__WORDSIZE 又是定义在：
+	#include <bits/wordsize.h>
+
+可以看到<bits/wordsize.h>在不同体系中是不同的结构
+例如x86中：
+	#if defined __x86_64__
+	# define __WORDSIZE     64
+	# define __WORDSIZE_COMPAT32     1
+	#else
+	# define __WORDSIZE     32
+	#endif
+而mips中：
+	#define __WORDSIZE     _MIPS_SZPTR
+	#if _MIPS_SIM == _ABI64
+	# define __WORDSIZE_COMPAT32     1
+	#endif
+
+因此最简单的方法是使用
+	#include <limits.h>
+	 #define CPU_BITS __WORDSIZE
+或者直接使用宏__WORDSIZE来使用。
+
+注意：不可以使用sizeof来进行预编译时判断
+例如 使用
+	#if sizeof(long) == 8
+来判断是否是64位系统。<br>
+因为在编译时会出现编译错误：<br>
+error: missing binary operator before token "("<br>
+因为#if 是在预编译时期进行，而sizeof是在编译时期进行。<br>
+Because sizeof is evaluated at compilation time while directives are evaluated before compilation, and the part that does that is not the compiler, so it won't understand what sizeof means.<br>
+[http://stackoverflow.com/questions/1612322/why-cant-i-use-sizeof-in-a-preprocessor-condition](http://stackoverflow.com/questions/1612322/why-cant-i-use-sizeof-in-a-preprocessor-condition)
+
