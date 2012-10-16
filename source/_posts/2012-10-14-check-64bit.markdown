@@ -5,7 +5,7 @@ date: 2012-10-14 21:33
 comments: true
 categories: 
 ---
-
+ 
 [http://stackoverflow.com/questions/1505582/determining-32-vs-64-bit-in-c](http://stackoverflow.com/questions/1505582/determining-32-vs-64-bit-in-c)
 	#include <limits.h>
 	#if ((ULONG_MAX) == (UINT_MAX))
