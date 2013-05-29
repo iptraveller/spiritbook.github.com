@@ -36,7 +36,8 @@ categories:
 		
 		(8)、info symbol <addr> 显示函数地址对应的函数名
 				<addr> 为函数指针地址 
-		
+
+[GDB使用例子1-->戳这里](https://github.com/spiritbook/helloworld/blob/master/xdebug/xsample1.c)
 ## 2. 使用/proc文件系统
 ###  2.1 查看线程陷入在内核中的栈回溯信息：
 		cat /proc/<pid>/stack
