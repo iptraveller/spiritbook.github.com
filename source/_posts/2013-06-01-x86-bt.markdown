@@ -1,0 +1,109 @@
+---
+layout: post
+title: "[Linux]X86-32函数调用过程"
+date: 2013-06-01 22:32
+comments: true
+categories: 
+---
+## 1. 测试代码如下，下文的分析基于该代码
+	  1 #include <stdio.h>
+	  2
+	  3 void func_b(int va, int vb)
+	  4 {
+	  5     int vc;
+	  6
+	  7     vc = va + vb;
+	  8 }
+	  9
+	 10 void func_a(void)
+	 11 {
+	 12     int va = 2, vb = 3;
+	 13     func_b(va, vb);
+	 14 }
+	 15
+	 16 int main(void)
+	 17 {
+	 18     func_a();
+	 19
+	 20     return 0;
+	 21 }
+
+## 2. 启动gdb，执行到第7行停止。
+	root@ubuntu:~# gdb main
+	(gdb) break func_b
+	Breakpoint 1 at 0x80483ba: file a.c, line 7.
+	(gdb) run
+	Starting program: /root/main
+
+	Breakpoint 1, func_b (va=2, vb=3) at a.c:7
+	7           vc = va + vb;
+	(gdb) step
+	8       }
+
+## 3. 查看当前进程寄存器信息
+	(gdb) info reg  
+	eax            0x5      5
+	ecx            0x6cb4f478       1823798392
+	edx            0x2      2
+	ebx            0x283ff4 2637812
+	esp            0xbffff750       0xbffff750
+	ebp            0xbffff760       0xbffff760
+	esi            0x0      0
+	edi            0x0      0
+	eip            0x80483c6        0x80483c6 <func_b+18>
+	eflags         0x200286 [ PF SF IF ID ]
+	cs             0x73     115
+	ss             0x7b     123
+	ds             0x7b     123
+	es             0x7b     123
+	fs             0x0      0
+	gs             0x33     51
+
+## 4. 查看从栈顶指针esp后的一段连续地址空间内容 
+	(gdb) x/14x 0xbffff750 
+	0xbffff750:     0x0011e030      
+	0xbffff754:     0x08049ff4
+	0xbffff758:     0xbffff788
+	0xbffff75b:     0x00000005  //<------ func_b函数的局部变量vc
+	0xbffff760:     0xbffff780  //<------ 保存上一层函数ebp的地址，用于回溯
+	0xbffff764:     0x080483ee  //<------ 保存上一层函数eip的值，即为上一层函数指针地址，这里为func_a
+	0xbffff768:     0x00000002  //<------ 保存当前函数的参数，这里为func_b函数的va
+	0xbffff76b:     0x00000003  //<------ 保存当前函数的参数，这里为func_b函数的vb
+	0xbffff770:     0x0015d4a5 
+	0xbffff774:     0x0011e030
+	0xbffff778:     0x00000003  //<------ func_a函数的局部变量vb
+	0xbffff77b:     0x00000002  //<------ func_a函数的局部变量va
+	0xbffff780:     0xbffff788  //<------ 保存上一层函数ebp的地址，用于回溯
+	0xbffff784:     0x080483f8  //<------ 保存上一层函数eip的值，即为上一层函数指针地址，这里为main
+
+## 5. 通过反汇编来了解函数压栈过程
+使用命令objdump xxx.elf -d 生成汇编代码
+
+	080483b4 <func_b>: //<------ 到这里时 esp=0xbffff764 ebp=0xbffff780
+	 80483b4:	55                   	push   %ebp                   //ebp压栈，把0xbffff780压入[0xbffff760]，并且调整栈顶指针esp - 0x4 = 0xbffff760
+	 80483b5:	89 e5                	mov    %esp,%ebp              //保存栈顶指针esp至ebp ，ebp=0xbffff760
+	 80483b7:	83 ec 10             	sub    $0x10,%esp             //调整栈顶指针esp, esp - 0x10 = 0xbffff750
+	 80483ba:	8b 45 0c             	mov    0xc(%ebp),%eax         //取[ebp + 0xc] = [0xbffff76b]位置的vb=3赋值给eax
+	 80483bd:	8b 55 08             	mov    0x8(%ebp),%edx         //取[ebp + 0x8] = [0xbffff768]位置的va=2赋值给edx
+	 80483c0:	8d 04 02             	lea    (%edx,%eax,1),%eax     //计算 eax = eax + edx
+	 80483c3:	89 45 fc             	mov    %eax,-0x4(%ebp)        //将vc=5放入局部变量地址[ebp - 4] = [0xbffff75b]
+	 80483c6:	c9                   	leave  
+	 80483c7:	c3                   	ret    
+
+	080483c8 <func_a>: //<------ 到这里时 esp=0xbffff784 ebp=0xbffff788
+	 80483c8:	55                   	push   %ebp                   //ebp压栈，即将值0xbffff788写入地址[0xbffff780]，并且调整栈顶指针esp - 0x4 = 0xbffff780
+	 80483c9:	89 e5                	mov    %esp,%ebp              //保存栈顶指针esp至ebp，ebp=0xbffff780
+	 80483cb:	83 ec 18             	sub    $0x18,%esp             //调整栈顶指针esp，esp - 0x18 = 0xbffff768
+	 80483ce:	c7 45 fc 02 00 00 00 	movl   $0x2,-0x4(%ebp)        //局部变量压栈，ebp-4位置赋值为va=2，即将值2写入地址[0xbffff77b]位置
+	 80483d5:	c7 45 f8 03 00 00 00 	movl   $0x3,-0x8(%ebp)        //局部变量压栈，ebp-8位置赋值为vb=3，即将值3写入地址[0xbffff778]位置
+	 80483dc:	8b 45 f8             	mov    -0x8(%ebp),%eax        //eax = 3
+	 80483df:	89 44 24 04          	mov    %eax,0x4(%esp)         //形参从右至左压栈，即将vb=3的值写入地址[esp + 0x4] =[0xbffff76b]位置
+	 80483e3:	8b 45 fc             	mov    -0x4(%ebp),%eax        //eax = 2
+	 80483e6:	89 04 24             	mov    %eax,(%esp)            //形参从右至左压栈，即将vb=2的值写入地址[esp] = [0xbffff768]位置
+	 80483e9:	e8 c6 ff ff ff       	call   80483b4 <func_b>       //将eip压栈，即将值0x080483ee写入地址[0xbffff764], 并且调整栈顶指针esp - 0x4 = 0xbffff780，然后调用函数func_b
+	 80483ee:	c9                   	leave  
+	 80483ef:	c3                   	ret    
+
+## 6. 待分析
+### (1) 每次函数调用esp根据什么来判断每次要sub多少才合适
+### (2) 那些连续空间中的未在汇编指令中体现的未知值是怎么产生的
