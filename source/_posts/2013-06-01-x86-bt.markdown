@@ -48,10 +48,6 @@ categories:
 	fs             0x0      0                       //<--- 附加段寄存器
 	gs             0x33     51                      //<--- 附加段寄存器
 
-X86寄存器参考信息<br>
-[http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html](http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html)
-[http://blog.csdn.net/hgd_dingjun/article/details/2809958](http://blog.csdn.net/hgd_dingjun/article/details/2809958)
-
 ## 3. 函数调用过程及栈空间信息
 (1). 将函数参数从右至左入栈。<br>
 (2). 函数指针入栈，调用函数。<br>
@@ -130,3 +126,7 @@ X86寄存器参考信息<br>
 ## 7. 待分析
 ### (1) 每次函数调用esp根据什么来判断每次要sub多少才合适
 ### (2) 那些连续空间中的未在汇编指令中体现的未知值是怎么产生的
+
+## 8.参考链接
+(1) X86寄存器参考信息 [http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html](http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html)<br>
+(2) 《程序员的自我修养-链接、装载与库》10.2节
