@@ -31,22 +31,26 @@ categories:
 
 ## 2 查看当前进程寄存器信息
 	(gdb) info reg  
-	eax            0x5      5
-	ecx            0x6cb4f478       1823798392
-	edx            0x2      2
-	ebx            0x283ff4 2637812
-	esp            0xbffff750       0xbffff750
-	ebp            0xbffff760       0xbffff760
-	esi            0x0      0
-	edi            0x0      0
-	eip            0x80483c6        0x80483c6 <func_b+18>
-	eflags         0x200286 [ PF SF IF ID ]
-	cs             0x73     115
-	ss             0x7b     123
-	ds             0x7b     123
-	es             0x7b     123
-	fs             0x0      0
-	gs             0x33     51
+	eax            0x5      5                       //<--- 累加器
+	ecx            0x6cb4f478       1823798392      //<--- 计数寄存器
+	edx            0x2      2                       //<--- 数据寄存器
+	ebx            0x283ff4 2637812                 //<--- 基址寄存器
+	esp            0xbffff750       0xbffff750      //<--- 堆栈指针寄存器
+	ebp            0xbffff760       0xbffff760      //<--- 基指针寄存器
+	esi            0x0      0                       //<--- 变址寄存器
+	edi            0x0      0                       //<--- 变址寄存器
+	eip            0x80483c6        0x80483c6 <func_b+18> //<--- 指令指针寄存器
+	eflags         0x200286 [ PF SF IF ID ]         //<--- 标志寄存器
+	cs             0x73     115                     //<--- 代码段寄存器
+	ss             0x7b     123                     //<--- 堆栈段寄存器
+	ds             0x7b     123                     //<--- 数据段寄存器
+	es             0x7b     123                     //<--- 附加段寄存器
+	fs             0x0      0                       //<--- 附加段寄存器
+	gs             0x33     51                      //<--- 附加段寄存器
+
+X86寄存器参考信息<br>
+[http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html](http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html)
+[http://blog.csdn.net/hgd_dingjun/article/details/2809958](http://blog.csdn.net/hgd_dingjun/article/details/2809958)
 
 ## 3. 函数调用过程及栈空间信息
 (1). 将函数参数从右至左入栈。<br>
