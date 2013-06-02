@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "[Linux]X86-32函数调用过程"
+title: "[Linux]X86-32函数调用过程堆栈"
 date: 2013-06-01 22:32
 comments: true
 categories: 
@@ -27,20 +27,9 @@ categories:
 	 19
 	 20     return 0;
 	 21 }
+	 使用gdb，断点
 
-## 2. 启动gdb，执行到第7行停止。
-	root@ubuntu:~# gdb main
-	(gdb) break func_b
-	Breakpoint 1 at 0x80483ba: file a.c, line 7.
-	(gdb) run
-	Starting program: /root/main
-
-	Breakpoint 1, func_b (va=2, vb=3) at a.c:7
-	7           vc = va + vb;
-	(gdb) step
-	8       }
-
-## 3. 查看当前进程寄存器信息
+## 2 查看当前进程寄存器信息
 	(gdb) info reg  
 	eax            0x5      5
 	ecx            0x6cb4f478       1823798392
@@ -58,6 +47,22 @@ categories:
 	es             0x7b     123
 	fs             0x0      0
 	gs             0x33     51
+
+## 3. 函数压栈过程简要图示
+	high 
+		 | ......           |
+		 | 返回地址(main)   |
+		 | 上一层ebp地址    |      
+		 | 局部变量va       | <---- 局部变量从左至右压栈
+		 | 局部变量vb       | 
+		 |  ......          |
+		 | 参数vb           | <---- 函数形参按照从右至左压栈
+		 | 参数va           |
+		 | 返回地址(func_a) |
+		 | 上一层ebp地址    | <---- ebp 地址
+		 | 局部变量vc       | 
+		 |  ......          | <---- esp 栈顶指针
+	low
 
 ## 4. 查看从栈顶指针esp后的一段连续地址空间内容 
 	(gdb) x/14x 0xbffff750 
