@@ -121,12 +121,15 @@ categories:
 	80483ef:		ret    
 
 ## 6. 利用ebp寄存器实现完整栈回溯信息
-可用于gdb时backtrace显示为??导致无法获取回溯信息的情况。
+可用于gdb调试时backtrace显示为??导致无法获取回溯信息的情况。
 
 ## 7. 待分析
-### (1) 每次函数调用esp根据什么来判断每次要sub多少才合适
-### (2) 那些连续空间中的未在汇编指令中体现的未知值是怎么产生的
+### (1) 函数调用中sub $0x18,%esp的 $0x18是如何计算出 
+### (2) 栈空间中未在汇编指令中出现的未知值如何生成的
 
 ## 8.参考链接
-(1) X86寄存器参考信息 [http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html](http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html)<br>
-(2) 《程序员的自我修养-链接、装载与库》10.2节
+(1) X86寄存器 [http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html](http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html)<br>
+(2) 《程序员的自我修养-链接、装载与库》10.2节<br>
+(3) [http://devpit.org/wiki/x86ManualBacktrace](http://devpit.org/wiki/x86ManualBacktrace)<br>
+
+Author: chenxiawei@gmail.com<br>
