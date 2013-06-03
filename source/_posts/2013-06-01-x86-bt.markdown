@@ -73,15 +73,15 @@ categories:
 	0xbffff750:     0x0011e030      
 	0xbffff754:     0x08049ff4
 	0xbffff758:     0xbffff788
-	0xbffff75b:     0x00000005  //<------ func_b函数的局部变量vc
+	0xbffff75c:     0x00000005  //<------ func_b函数的局部变量vc
 	0xbffff760:     0xbffff780  //<------ 保存上一层函数ebp的地址，用于回溯
 	0xbffff764:     0x080483ee  //<------ 保存上一层函数eip的值，即为上一层函数指针地址，这里为func_a
 	0xbffff768:     0x00000002  //<------ 保存当前函数的参数，这里为func_b函数的va
-	0xbffff76b:     0x00000003  //<------ 保存当前函数的参数，这里为func_b函数的vb
+	0xbffff76c:     0x00000003  //<------ 保存当前函数的参数，这里为func_b函数的vb
 	0xbffff770:     0x0015d4a5 
 	0xbffff774:     0x0011e030
 	0xbffff778:     0x00000003  //<------ func_a函数的局部变量vb
-	0xbffff77b:     0x00000002  //<------ func_a函数的局部变量va
+	0xbffff77c:     0x00000002  //<------ func_a函数的局部变量va
 	0xbffff780:     0xbffff788  //<------ 保存上一层函数ebp的地址，用于回溯
 	0xbffff784:     0x080483f8  //<------ 保存上一层函数eip的值，即为上一层函数指针地址，这里为main
 
@@ -125,9 +125,11 @@ categories:
 
 ## 7. 待分析
 ### (1) 函数调用中sub $0x18,%esp的 $0x18是如何计算出 
-局部变量需要16Bytes对齐，加上函数参数压栈的的8Bytes。<br>
+X86函数局部变量需要16Bytes对齐，func_a的局部变量为8Bytes，向上对齐到0x10。<br>
+加上函数参数压栈的va及vb的8Bytes。<br>
 [http://stackoverflow.com/questions/612443/why-does-the-mac-abi-require-16-byte-stack-alignment-for-x86-32](http://stackoverflow.com/questions/612443/why-does-the-mac-abi-require-16-byte-stack-alignment-for-x86-32)
 ### (2) 栈空间中未在汇编指令中出现的未知值如何生成的
+由于局部变量对齐产生的缝隙，应该是为未指定的变量，每次结果不一定一样。
 
 ## 8.参考链接
 (1) X86寄存器 [http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html](http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html)<br>
