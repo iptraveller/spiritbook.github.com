@@ -125,11 +125,14 @@ categories:
 
 ## 7. 待分析
 ### (1) 函数调用中sub $0x18,%esp的 $0x18是如何计算出 
+局部变量需要16Bytes对齐，加上函数参数压栈的的8Bytes。<br>
+[http://stackoverflow.com/questions/612443/why-does-the-mac-abi-require-16-byte-stack-alignment-for-x86-32](http://stackoverflow.com/questions/612443/why-does-the-mac-abi-require-16-byte-stack-alignment-for-x86-32)
 ### (2) 栈空间中未在汇编指令中出现的未知值如何生成的
 
 ## 8.参考链接
 (1) X86寄存器 [http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html](http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html)<br>
 (2) 《程序员的自我修养-链接、装载与库》10.2节<br>
 (3) [http://devpit.org/wiki/x86ManualBacktrace](http://devpit.org/wiki/x86ManualBacktrace)<br>
+(4) wiki [http://en.wikibooks.org/wiki/X86_Disassembly/Functions_and_Stack_Frames](http://en.wikibooks.org/wiki/X86_Disassembly/Functions_and_Stack_Frames)<br>
 
 Author: chenxiawei@gmail.com<br>
