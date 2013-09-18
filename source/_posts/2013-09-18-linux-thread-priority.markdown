@@ -1,12 +1,12 @@
 ---
 layout: post
-title: "[Linux]çº¿ç¨‹ä¼˜å…ˆçº§"
-date: 2013-09-18 22:34
+title: "linux-thread-priority"
+date: 2013-09-18 22:50
 comments: true
 categories: 
 ---
-## 1. ä¼˜å…ˆçº§èŒƒå›´
-Linuxçº¿ç¨‹ä¼˜å…ˆçº§èŒƒå›´å®šä¹‰åœ¨å¤´æ–‡ä»¶<linux/sched.h></br>
+## 1. ÓÅÏÈ¼¶·¶Î§
+LinuxÏß³ÌÓÅÏÈ¼¶·¶Î§¶¨ÒåÔÚÍ·ÎÄ¼ş<linux/sched.h></br>
 	/*
 	 * Priority of a process goes from 0..MAX_PRIO-1, valid RT
 	 * priority is 0..MAX_RT_PRIO-1, and SCHED_NORMAL/SCHED_BATCH
@@ -26,8 +26,8 @@ Linuxçº¿ç¨‹ä¼˜å…ˆçº§èŒƒå›´å®šä¹‰åœ¨å¤´æ–‡ä»¶<linux/sched.h></br>
 	#define MAX_PRIO			(MAX_RT_PRIO + 40)
 	#define DEFAULT_PRIO		(MAX_RT_PRIO + 20)
 
-## 2 æŸ¥çœ‹è¿›ç¨‹ä¼˜å…ˆçº§æ–¹å¼
-### 1 topå‘½ä»¤
+## 2 ²é¿´½ø³ÌÓÅÏÈ¼¶·½Ê½
+### 1 topÃüÁî
 	  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND                                                                          
 		1 root      20   0  2804 1576 1192 S  0.0  0.3   0:00.97 init                                                                           
 		2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kthreadd                                                                       
@@ -35,15 +35,15 @@ Linuxçº¿ç¨‹ä¼˜å…ˆçº§èŒƒå›´å®šä¹‰åœ¨å¤´æ–‡ä»¶<linux/sched.h></br>
 		4 root      20   0     0    0    0 S  0.0  0.0   0:00.02 ksoftirqd/0                                                                    
 		5 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 watchdog/0                                                                     
 		6 root      20   0     0    0    0 S  0.0  0.0   0:00.06 events/0     
-è¯´æ˜ï¼š<br>
-PR å’Œ NI ä» /procæ–‡ä»¶ç³»ç»Ÿä¸­è¯»å– "/proc/[pid]/stat"<br> 
+ËµÃ÷£º<br>
+PR ºÍ NI ´Ó /procÎÄ¼şÏµÍ³ÖĞ¶ÁÈ¡ "/proc/[pid]/stat"<br> 
 	cat /proc/1/stat
 	1 (init) S 0 1 1 0 -1 4202752 4680 154640 23 343 6 136 154 151 20 0 ...
 	cat /proc/3/stat
 	3 (migration/0) S 2 0 0 0 -1 2216730688 0 0 0 0 0 0 0 0 -100 0  ...
 	priority %ld
 
-man proc æŸ¥çœ‹statæ–‡ä»¶çš„å…·ä½“è¯´æ˜ä¸­çš„ç¬¬18å’Œç¬¬19é¡¹<br>
+man proc ²é¿´statÎÄ¼şµÄ¾ßÌåËµÃ÷ÖĞµÄµÚ18ºÍµÚ19Ïî<br>
 
 	(18) (Explanation for Linux 2.6) For processes running a real-time scheduling policy (policy below; see sched_setscheduler(2)), 
 	this is the negated scheduling priority, minus one; that is, a number in the range -2 to -100, corresponding to real-time priorities 1 to 99. 
@@ -55,7 +55,7 @@ man proc æŸ¥çœ‹statæ–‡ä»¶çš„å…·ä½“è¯´æ˜ä¸­çš„ç¬¬18å’Œç¬¬19é¡¹<br>
 	nice %ld
 	(19) The nice value (see setpriority(2)), a value in the range 19 (low priority) to -20 (high priority).
 	
-### 2 pså‘½ä»¤
+### 2 psÃüÁî
 	c@c-desktop:~$ ps -el
 	F S   UID   PID  PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
 	4 S     0     1     0  0  80   0 -   702 poll_s ?        00:00:01 init
@@ -65,7 +65,7 @@ man proc æŸ¥çœ‹statæ–‡ä»¶çš„å…·ä½“è¯´æ˜ä¸­çš„ç¬¬18å’Œç¬¬19é¡¹<br>
 	5 S     0     5     2  0 -40   - -     0 watchd ?        00:00:00 watchdog/0
 	1 S     0     6     2  0  80   0 -     0 worker ?        00:00:00 events/0
 	
-è¿™é‡Œçš„PRIä¸ºä»€ä¹ˆå’ŒTOPçš„PSå€¼ä¸ä¸€æ ·å‘¢ï¼ŒæŸ¥é˜…procpsæºä»£ç åå‘ç°å¦‚ä¸‹å¥¥å¦™<br>
+ÕâÀïµÄPRIÎªÊ²Ã´ºÍTOPµÄPSÖµ²»Ò»ÑùÄØ£¬²éÔÄprocpsÔ´´úÂëºó·¢ÏÖÈçÏÂ°ÂÃî<br>
 	In linux procps, the column labeled "PRI" in ps -l is -o opri
 	c@c-desktop:~$ ps -e -o pid,pri,opri,intpri,priority,ni,cmd
 	  PID PRI PRI PRI PRI  NI CMD
@@ -76,7 +76,7 @@ man proc æŸ¥çœ‹statæ–‡ä»¶çš„å…·ä½“è¯´æ˜ä¸­çš„ç¬¬18å’Œç¬¬19é¡¹<br>
 		5 139 -40 -40 -100  - [watchdog/0]
 		6  19  80  80  20   0 [events/0]
 
-procps/output.cä¸­æœ‰å…·ä½“è¯´æ˜ï¼š<br>
+procps/output.cÖĞÓĞ¾ßÌåËµÃ÷£º<br>
 	// "priority"         (was -20..20, now -100..39)
 	// "intpri" and "opri" (was 39..79, now  -40..99)
 	// "pri_foo"   --  match up w/ nice values of sleeping processes (-120..19)
@@ -87,6 +87,6 @@ procps/output.cä¸­æœ‰å…·ä½“è¯´æ˜ï¼š<br>
 
 ## 3. Reference
 (1) [http://superuser.com/questions/286752/unix-ps-l-priority](http://superuser.com/questions/286752/unix-ps-l-priority)<br>
-(2) [http://procps.sourceforge.net/download.html](http://procps.sourceforge.net/download.html) éœ€è¦ç¿»å¢™
+(2) [http://procps.sourceforge.net/download.html](http://procps.sourceforge.net/download.html) ĞèÒª·­Ç½
 
 Author: chenxiawei@gmail.com<br>
