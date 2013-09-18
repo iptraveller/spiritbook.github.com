@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>linux-thread-priority - Ali</title>
+  <meta name="author" content="">
+
+  
+  <meta name="description" content="1. Linux线程优先级范围 Linux定义线程优先级范围在头文件&lt;linux/sched.h> /* * Priority of a process goes from 0..MAX_PRIO-1, valid RT * priority is 0..MAX_RT_PRIO-1, and &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://spiritbook.github.com/blog/2013/09/18/linux-thread-priority/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Ali" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Ali</a></h1>
+  
+    <h2>A coding cat.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:spiritbook.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Linux-thread-priority</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-18T22:50:00+08:00" pubdate data-updated="true">Sep 18<span>th</span>, 2013</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>1. Linux线程优先级范围</h2>
+
+<p>Linux定义线程优先级范围在头文件&lt;linux/sched.h></br></p>
+
+<pre><code>/*
+ * Priority of a process goes from 0..MAX_PRIO-1, valid RT
+ * priority is 0..MAX_RT_PRIO-1, and SCHED_NORMAL/SCHED_BATCH
+ * tasks are in the range MAX_RT_PRIO..MAX_PRIO-1. Priority
+ * values are inverted: lower p-&gt;prio value means higher priority.
+ *
+ * The MAX_USER_RT_PRIO value allows the actual maximum
+ * RT priority to be separate from the value exported to
+ * user-space.  This allows kernel threads to set their
+ * priority to a value higher than any user task. Note:
+ * MAX_RT_PRIO must not be smaller than MAX_USER_RT_PRIO.
+ */
+
+#define MAX_USER_RT_PRIO    100
+#define MAX_RT_PRIO         MAX_USER_RT_PRIO
+
+#define MAX_PRIO            (MAX_RT_PRIO + 40)
+#define DEFAULT_PRIO        (MAX_RT_PRIO + 20)
+</code></pre>
+
+<h2>2 查看线程优先级</h2>
+
+<h3>1 top命令</h3>
+
+<pre><code>  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND                                                                          
+    1 root      20   0  2804 1576 1192 S  0.0  0.3   0:00.97 init                                                                           
+    2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kthreadd                                                                       
+    3 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/0                                                                    
+    4 root      20   0     0    0    0 S  0.0  0.0   0:00.02 ksoftirqd/0                                                                    
+    5 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 watchdog/0                                                                     
+    6 root      20   0     0    0    0 S  0.0  0.0   0:00.06 events/0     
+</code></pre>
+
+<p>PR 和 NI 从 proc文件系统中读取得到 &#8220;/proc/[pid]/stat&#8221;<br></p>
+
+<pre><code>cat /proc/1/stat
+1 (init) S 0 1 1 0 -1 4202752 4680 154640 23 343 6 136 154 151 20 0 ...
+cat /proc/3/stat
+3 (migration/0) S 2 0 0 0 -1 2216730688 0 0 0 0 0 0 0 0 -100 0  ...
+priority %ld
+</code></pre>
+
+<p>man proc stat 查看第18项和第19项的说明<br></p>
+
+<pre><code>(18) (Explanation for Linux 2.6) For processes running a real-time scheduling policy (policy below; see sched_setscheduler(2)), 
+this is the negated scheduling priority, minus one; that is, a number in the range -2 to -100, corresponding to real-time priorities 1 to 99. 
+For processes running under a non-real-time scheduling policy, this is the raw nice value (setpriority(2)) as represented in the kernel. 
+The kernel stores nice values as numbers in the range 0 (high) to 39 (low), corresponding to the user-visible nice range of -20 to 19.
+
+Before Linux 2.6, this was a scaled value based on the scheduler weighting given to this process.
+
+nice %ld
+(19) The nice value (see setpriority(2)), a value in the range 19 (low priority) to -20 (high priority).
+</code></pre>
+
+<h3>2 ps命令</h3>
+
+<pre><code>c@c-desktop:~$ ps -el
+F S   UID   PID  PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
+4 S     0     1     0  0  80   0 -   702 poll_s ?        00:00:01 init
+1 S     0     2     0  0  80   0 -     0 kthrea ?        00:00:00 kthreadd
+1 S     0     3     2  0 -40   - -     0 migrat ?        00:00:00 migration/0
+1 S     0     4     2  0  80   0 -     0 ksofti ?        00:00:00 ksoftirqd/0
+5 S     0     5     2  0 -40   - -     0 watchd ?        00:00:00 watchdog/0
+1 S     0     6     2  0  80   0 -     0 worker ?        00:00:00 events/0
+</code></pre>
+
+<p>这里的PRI为什么和top的PRI不一样呢，通过查看procps源代码找到了原因<br></p>
+
+<pre><code>In linux procps, the column labeled "PRI" in ps -l is -o opri
+c@c-desktop:~$ ps -e -o pid,pri,opri,intpri,priority,ni,cmd
+  PID PRI PRI PRI PRI  NI CMD
+    1  19  80  80  20   0 /sbin/init
+    2  19  80  80  20   0 [kthreadd]
+    3 139 -40 -40 -100  - [migration/0]
+    4  19  80  80  20   0 [ksoftirqd/0]
+    5 139 -40 -40 -100  - [watchdog/0]
+    6  19  80  80  20   0 [events/0]
+</code></pre>
+
+<p>procps/output.c中含有具体说明<br></p>
+
+<pre><code>// "priority"         (was -20..20, now -100..39)
+// "intpri" and "opri" (was 39..79, now  -40..99)
+// "pri_foo"   --  match up w/ nice values of sleeping processes (-120..19)
+// "pri_bar"   --  makes RT pri show as negative       (-99..40)
+// "pri_baz"   --  the kernel's -&gt;prio value, as of Linux 2.6.8     (1..140)
+// "pri"               (was 20..60, now    0..139)
+// "pri_api"   --  match up w/ RT API    (-40..99)
+</code></pre>
+
+<h2>3. Reference</h2>
+
+<p>(1) <a href="http://superuser.com/questions/286752/unix-ps-l-priority">http://superuser.com/questions/286752/unix-ps-l-priority</a><br>
+(2) <a href="http://procps.sourceforge.net/download.html">http://procps.sourceforge.net/download.html</a> 需要翻墙</p>
+
+<p>Author: chenxiawei@gmail.com<br></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-18T22:50:00+08:00" pubdate data-updated="true">Sep 18<span>th</span>, 2013</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://spiritbook.github.com/blog/2013/09/18/linux-thread-priority/" data-via="" data-counturl="http://spiritbook.github.com/blog/2013/09/18/linux-thread-priority/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/06/01/x86-bt/" title="Previous Post: [Linux]X86-32函数调用过程堆栈">&laquo; [Linux]X86-32函数调用过程堆栈</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/09/18/linux-thread-priority/">linux-thread-priority</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/06/01/x86-bt/">[Linux]X86-32函数调用过程堆栈</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/05/29/linux-debug-skill/">Linux调试手段</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/10/14/check-64bit/">编译时判断系统32位/64位</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/08/27/readable-code-1/">The Art of Readable Code (1)</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 -  -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'spiritbook';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://spiritbook.github.com/blog/2013/09/18/linux-thread-priority/';
+        var disqus_url = 'http://spiritbook.github.com/blog/2013/09/18/linux-thread-priority/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

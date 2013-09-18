@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>[Linux]X86-32函数调用过程堆栈 - Ali</title>
+  <meta name="author" content="">
+
+  
+  <meta name="description" content="1. 测试代码如下，下文的分析基于该代码 1 #include &lt;stdio.h&gt; 2 3 void func_b(int va, int vb) 4 { 5 int vc; 6 7 vc = va + vb; 8 } 9 10 void func_a(void) 11 { 12 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://spiritbook.github.com/blog/2013/06/01/x86-bt/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Ali" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Ali</a></h1>
+  
+    <h2>A coding cat.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:spiritbook.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">[Linux]X86-32函数调用过程堆栈</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-01T22:32:00+08:00" pubdate data-updated="true">Jun 1<span>st</span>, 2013</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>1. 测试代码如下，下文的分析基于该代码</h2>
+
+<pre><code>  1 #include &lt;stdio.h&gt;
+  2
+  3 void func_b(int va, int vb)
+  4 {
+  5     int vc;
+  6
+  7     vc = va + vb;
+  8 }
+  9
+ 10 void func_a(void)
+ 11 {
+ 12     int va = 2, vb = 3;
+ 13     func_b(va, vb);
+ 14 }
+ 15
+ 16 int main(void)
+ 17 {
+ 18     func_a();
+ 19
+ 20     return 0;
+ 21 }
+ 使用gdb，断点
+</code></pre>
+
+<h2>2 查看当前进程寄存器信息</h2>
+
+<pre><code>(gdb) info reg  
+eax            0x5      5                       //&lt;--- 累加器
+ecx            0x6cb4f478       1823798392      //&lt;--- 计数寄存器
+edx            0x2      2                       //&lt;--- 数据寄存器
+ebx            0x283ff4 2637812                 //&lt;--- 基址寄存器
+esp            0xbffff750       0xbffff750      //&lt;--- 堆栈指针寄存器
+ebp            0xbffff760       0xbffff760      //&lt;--- 基指针寄存器
+esi            0x0      0                       //&lt;--- 变址寄存器
+edi            0x0      0                       //&lt;--- 变址寄存器
+eip            0x80483c6        0x80483c6 &lt;func_b+18&gt; //&lt;--- 指令指针寄存器
+eflags         0x200286 [ PF SF IF ID ]         //&lt;--- 标志寄存器
+cs             0x73     115                     //&lt;--- 代码段寄存器
+ss             0x7b     123                     //&lt;--- 堆栈段寄存器
+ds             0x7b     123                     //&lt;--- 数据段寄存器
+es             0x7b     123                     //&lt;--- 附加段寄存器
+fs             0x0      0                       //&lt;--- 附加段寄存器
+gs             0x33     51                      //&lt;--- 附加段寄存器
+</code></pre>
+
+<h2>3. 函数调用过程及栈空间信息</h2>
+
+<p>(1). 将函数参数从右至左入栈。<br>
+(2). 函数指针入栈，调用函数。<br>
+(3). ebp指针入栈。<br>
+(4). 函数局部变量从前至后入栈。<br></p>
+
+<pre><code>high 
+    | 。。。           |
+    | 返回地址(main)   |
+    | 上一层ebp地址    |      
+    | 局部变量va       | &lt;---- 局部变量从前至后压栈
+    | 局部变量vb       | 
+    | 。。。           |
+    | 参数vb           | &lt;---- 函数形参按照从右至左压栈
+    | 参数va           |
+    | 返回地址(func_a) | &lt;---- eip 地址
+    | 上一层ebp地址    | &lt;---- ebp 地址
+    | 局部变量vc       | 
+    | 。。。           | &lt;---- esp 栈顶指针
+low
+</code></pre>
+
+<h2>4. 查看从栈顶指针esp后的一段连续地址空间内容</h2>
+
+<pre><code>(gdb) x/14x 0xbffff750 
+0xbffff750:     0x0011e030      
+0xbffff754:     0x08049ff4
+0xbffff758:     0xbffff788
+0xbffff75c:     0x00000005  //&lt;------ func_b函数的局部变量vc
+0xbffff760:     0xbffff780  //&lt;------ 保存上一层函数ebp的地址，用于回溯
+0xbffff764:     0x080483ee  //&lt;------ 保存上一层函数eip的值，即为上一层函数指针地址，这里为func_a
+0xbffff768:     0x00000002  //&lt;------ 保存当前函数的参数，这里为func_b函数的va
+0xbffff76c:     0x00000003  //&lt;------ 保存当前函数的参数，这里为func_b函数的vb
+0xbffff770:     0x0015d4a5 
+0xbffff774:     0x0011e030
+0xbffff778:     0x00000003  //&lt;------ func_a函数的局部变量vb
+0xbffff77c:     0x00000002  //&lt;------ func_a函数的局部变量va
+0xbffff780:     0xbffff788  //&lt;------ 保存上一层函数ebp的地址，用于回溯
+0xbffff784:     0x080483f8  //&lt;------ 保存上一层函数eip的值，即为上一层函数指针地址，这里为main
+</code></pre>
+
+<h2>5. 通过反汇编来了解函数压栈过程</h2>
+
+<p>使用命令objdump xxx.elf -d 生成汇编代码</p>
+
+<pre><code>080483b4 &lt;func_b&gt;: //&lt;------ 到这里时 esp=0xbffff764 ebp=0xbffff780
+80483b4:        push   %ebp                   //ebp压栈，把0xbffff780压入[0xbffff760]，
+                                                并且调整栈顶指针esp - 0x4 = 0xbffff760
+80483b5:        mov    %esp,%ebp              //保存栈顶指针esp至ebp ，ebp=0xbffff760
+80483b7:        sub    $0x10,%esp             //调整栈顶指针esp, esp - 0x10 = 0xbffff750
+80483ba:        mov    0xc(%ebp),%eax         //取[ebp + 0xc] = [0xbffff76b]位置的vb=3赋值给eax
+80483bd:        mov    0x8(%ebp),%edx         //取[ebp + 0x8] = [0xbffff768]位置的va=2赋值给edx
+80483c0:        lea    (%edx,%eax,1),%eax     //计算 eax = eax + edx
+80483c3:        mov    %eax,-0x4(%ebp)        //将vc=5放入局部变量地址[ebp - 4] = [0xbffff75b]
+80483c6:        leave  
+80483c7:        ret    
+
+080483c8 &lt;func_a&gt;: //&lt;------ 到这里时 esp=0xbffff784 ebp=0xbffff788
+80483c8:        push   %ebp                   //ebp压栈，即将值0xbffff788写入地址[0xbffff780]，
+                                                并且调整栈顶指针esp - 0x4 = 0xbffff780
+80483c9:        mov    %esp,%ebp              //保存栈顶指针esp至ebp，ebp=0xbffff780
+80483cb:        sub    $0x18,%esp             //调整栈顶指针esp，esp - 0x18 = 0xbffff768
+80483ce:        movl   $0x2,-0x4(%ebp)        //局部变量压栈，ebp-4位置赋值为va=2，
+                                                即将值2写入地址[0xbffff77b]位置
+80483d5:        movl   $0x3,-0x8(%ebp)        //局部变量压栈，ebp-8位置赋值为vb=3，
+                                                即将值3写入地址[0xbffff778]位置
+80483dc:        mov    -0x8(%ebp),%eax        //eax = 3
+80483df:        mov    %eax,0x4(%esp)         //形参从右至左压栈，
+                                                即将vb=3的值写入地址[esp + 0x4] =[0xbffff76b]位置
+80483e3:        mov    -0x4(%ebp),%eax        //eax = 2
+80483e6:        mov    %eax,(%esp)            //形参从右至左压栈，
+                                                即将vb=2的值写入地址[esp] = [0xbffff768]位置
+80483e9:        call   80483b4 &lt;func_b&gt;       //将eip压栈，即将值0x080483ee写入地址[0xbffff764], 
+                                                并且调整栈顶指针esp - 0x4 = 0xbffff780，然后调用函数func_b
+80483ee:        leave  
+80483ef:        ret    
+</code></pre>
+
+<h2>6. 利用ebp寄存器实现完整栈回溯信息</h2>
+
+<p>可用于gdb调试时backtrace显示为??导致无法获取回溯信息的情况。</p>
+
+<h2>7. 待分析</h2>
+
+<h3>(1) 函数调用中sub $0x18,%esp的 $0x18是如何计算出</h3>
+
+<p>X86函数局部变量需要16Bytes对齐，func_a的局部变量为8Bytes，向上对齐到0x10。<br>
+加上函数参数压栈的va及vb的8Bytes。<br>
+<a href="http://stackoverflow.com/questions/612443/why-does-the-mac-abi-require-16-byte-stack-alignment-for-x86-32">http://stackoverflow.com/questions/612443/why-does-the-mac-abi-require-16-byte-stack-alignment-for-x86-32</a></p>
+
+<h3>(2) 栈空间中未在汇编指令中出现的未知值如何生成的</h3>
+
+<p>由于局部变量对齐产生的缝隙，应该是为未指定的变量，每次结果不一定一样。</p>
+
+<h2>8.参考链接</h2>
+
+<p>(1) X86寄存器 <a href="http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html">http://www.eecg.toronto.edu/~amza/www.mindsec.com/files/x86regs.html</a><br>
+(2) 《程序员的自我修养-链接、装载与库》10.2节<br>
+(3) <a href="http://devpit.org/wiki/x86ManualBacktrace">http://devpit.org/wiki/x86ManualBacktrace</a><br>
+(4) wiki <a href="http://en.wikibooks.org/wiki/X86_Disassembly/Functions_and_Stack_Frames">http://en.wikibooks.org/wiki/X86_Disassembly/Functions_and_Stack_Frames</a><br></p>
+
+<p>Author: chenxiawei@gmail.com<br></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-01T22:32:00+08:00" pubdate data-updated="true">Jun 1<span>st</span>, 2013</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://spiritbook.github.com/blog/2013/06/01/x86-bt/" data-via="" data-counturl="http://spiritbook.github.com/blog/2013/06/01/x86-bt/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/05/29/linux-debug-skill/" title="Previous Post: Linux调试手段">&laquo; Linux调试手段</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/09/18/linux-thread-priority/" title="Next Post: linux-thread-priority">linux-thread-priority &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/09/18/linux-thread-priority/">linux-thread-priority</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/06/01/x86-bt/">[Linux]X86-32函数调用过程堆栈</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/05/29/linux-debug-skill/">Linux调试手段</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/10/14/check-64bit/">编译时判断系统32位/64位</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/08/27/readable-code-1/">The Art of Readable Code (1)</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 -  -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'spiritbook';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://spiritbook.github.com/blog/2013/06/01/x86-bt/';
+        var disqus_url = 'http://spiritbook.github.com/blog/2013/06/01/x86-bt/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
