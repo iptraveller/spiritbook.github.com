@@ -37,12 +37,14 @@ Linux线程优先级范围定义在头文件<linux/sched.h></br>
 		6 root      20   0     0    0    0 S  0.0  0.0   0:00.06 events/0     
 说明：<br>
 PR 和 NI 从 /proc文件系统中读取 "/proc/[pid]/stat"<br> 
-
 	cat /proc/1/stat
 	1 (init) S 0 1 1 0 -1 4202752 4680 154640 23 343 6 136 154 151 20 0 ...
 	cat /proc/3/stat
 	3 (migration/0) S 2 0 0 0 -1 2216730688 0 0 0 0 0 0 0 0 -100 0  ...
 	priority %ld
+
+man proc 查看stat文件的具体说明中的第18和第19项<br>
+
 	(18) (Explanation for Linux 2.6) For processes running a real-time scheduling policy (policy below; see sched_setscheduler(2)), 
 	this is the negated scheduling priority, minus one; that is, a number in the range -2 to -100, corresponding to real-time priorities 1 to 99. 
 	For processes running under a non-real-time scheduling policy, this is the raw nice value (setpriority(2)) as represented in the kernel. 
@@ -84,7 +86,7 @@ procps/output.c中有具体说明：<br>
 	// "pri_api"   --  match up w/ RT API    (-40..99)
 
 ## 3. Reference
-(1) [http://superuser.com/questions/286752/unix-ps-l-priority](http://superuser.com/questions/286752/unix-ps-l-priority)
+(1) [http://superuser.com/questions/286752/unix-ps-l-priority](http://superuser.com/questions/286752/unix-ps-l-priority)<br>
 (2) [http://procps.sourceforge.net/download.html](http://procps.sourceforge.net/download.html) 需要翻墙
 
 Author: chenxiawei@gmail.com<br>
