@@ -42,7 +42,7 @@ PR 和 NI 从 proc文件系统中读取得到 "/proc/[pid]/stat"<br>
 	cat /proc/3/stat
 	3 (migration/0) S 2 0 0 0 -1 2216730688 0 0 0 0 0 0 0 0 -100 0  ...
 
-man proc 查看stat的第18项和第19项的说明如下<br>
+通过man proc 查看stat的第18项和第19项的说明如下<br>
 	priority %ld
 	(18) (Explanation for Linux 2.6) For processes running a real-time scheduling policy (policy below; see sched_setscheduler(2)), 
 	this is the negated scheduling priority, minus one; that is, a number in the range -2 to -100, corresponding to real-time priorities 1 to 99. 
