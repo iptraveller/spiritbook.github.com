@@ -42,7 +42,7 @@ PR 和 NI 从 proc文件系统中读取得到 "/proc/[pid]/stat"<br>
 	cat /proc/3/stat
 	3 (migration/0) S 2 0 0 0 -1 2216730688 0 0 0 0 0 0 0 0 -100 0  ...
 
-man proc stat 查看第18项和第19项的说明<br>
+man proc 查看stat的第18项和第19项的说明如下<br>
 	priority %ld
 	(18) (Explanation for Linux 2.6) For processes running a real-time scheduling policy (policy below; see sched_setscheduler(2)), 
 	this is the negated scheduling priority, minus one; that is, a number in the range -2 to -100, corresponding to real-time priorities 1 to 99. 
@@ -64,7 +64,7 @@ man proc stat 查看第18项和第19项的说明<br>
 	5 S     0     5     2  0 -40   - -     0 watchd ?        00:00:00 watchdog/0
 	1 S     0     6     2  0  80   0 -     0 worker ?        00:00:00 events/0
 	
-这里的PRI为什么和top的PRI不一样呢，通过查看procps源代码找到了原因<br>
+这里的PRI为什么和top的PR不一样呢，通过查看procps源代码找到了原因<br>
 	In linux procps, the column labeled "PRI" in ps -l is -o opri
 	c@c-desktop:~$ ps -e -o pid,pri,opri,intpri,priority,ni,cmd
 	  PID PRI PRI PRI PRI  NI CMD
