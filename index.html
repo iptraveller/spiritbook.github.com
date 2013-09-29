@@ -119,7 +119,7 @@
 #define DEFAULT_PRIO        (MAX_RT_PRIO + 20)
 </code></pre>
 
-<h2>1. Linux线程调度策略</h2>
+<h2>2. Linux线程调度策略</h2>
 
 <p>Linux定义线程调度策略在头文件&lt;linux/sched.h></br></p>
 
@@ -137,9 +137,9 @@ SCHED_RR：采用实时调度策略，且时间片轮转，时间片用完，系
 SCHED_BATCH：针对批处理进程。<br>
 SCHED_IDLE：使用此调度器的进程的优先级最低。在实现CFS时引入。<br></p>
 
-<h2>2. Linux线程调度算法</h2>
+<h2>3. Linux线程调度算法</h2>
 
-<h2>3 shell下查看线程优先级</h2>
+<h2>4 shell下查看线程优先级</h2>
 
 <h3>1 top命令</h3>
 
@@ -212,7 +212,7 @@ c@c-desktop:~$ ps -e -o pid,pri,opri,intpri,priority,ni,cmd
 // "pri_api"   --  match up w/ RT API    (-40..99)
 </code></pre>
 
-<h2>4 shell下修改线程优先级</h2>
+<h2>5 shell下修改线程优先级</h2>
 
 <h3>1 nice命令</h3>
 
@@ -249,7 +249,7 @@ root@c-desktop:~/Code# ps -o pid,priority,ni,cmd
  2145   0 -20 ./a.out
 </code></pre>
 
-<h2>5. Reference</h2>
+<h2>6. Reference</h2>
 
 <p>(1) <a href="http://oreilly.com/catalog/linuxkernel/chapter/ch10.html">http://oreilly.com/catalog/linuxkernel/chapter/ch10.html</a><br>
 (2) <a href="http://superuser.com/questions/286752/unix-ps-l-priority">http://superuser.com/questions/286752/unix-ps-l-priority</a><br>
