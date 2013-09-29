@@ -1,101 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
 
-<!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  <title>Ali</title>
-  <meta name="author" content="">
-
-  
-  <meta name="description" content="1. Linux线程优先级范围 Linux定义线程优先级范围在头文件&lt;linux/sched.h> /* * Priority of a process goes from 0..MAX_PRIO-1, valid RT * priority is 0..MAX_RT_PRIO-1, and &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  
-  <link rel="canonical" href="http://spiritbook.github.com/">
-  <link href="/favicon.png" rel="icon">
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <link href="/atom.xml" rel="alternate" title="Ali" type="application/atom+xml">
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-
-  
-
-</head>
-
-<body   >
-  <header role="banner"><hgroup>
-  <h1><a href="/">Ali</a></h1>
-  
-    <h2>A coding cat.</h2>
-  
-</hgroup>
-
-</header>
-  <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
-  
-</ul>
-  
-<form action="http://google.com/search" method="get">
-  <fieldset role="search">
-    <input type="hidden" name="q" value="site:spiritbook.github.com" />
-    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-  </fieldset>
-</form>
-  
-<ul class="main-navigation">
-  <li><a href="/">Blog</a></li>
-  <li><a href="/blog/archives">Archives</a></li>
-</ul>
-
-</nav>
-  <div id="main">
-    <div id="content">
-      <div class="blog-index">
-  
-  
-  
-    <article>
-      
-  <header>
+  <title><![CDATA[Ali]]></title>
+  <link href="http://spiritbook.github.com/atom.xml" rel="self"/>
+  <link href="http://spiritbook.github.com/"/>
+  <updated>2013-09-29T22:30:40+08:00</updated>
+  <id>http://spiritbook.github.com/</id>
+  <author>
+    <name><![CDATA[]]></name>
     
-      <h1 class="entry-title"><a href="/blog/2013/09/18/linux-thread-priority/">Linux线程优先级</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
 
   
-
-
-<time datetime="2013-09-18T22:50:00+08:00" pubdate data-updated="true">Sep 18<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/09/18/linux-thread-priority/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>1. Linux线程优先级范围</h2>
+  <entry>
+    <title type="html"><![CDATA[linux线程优先级]]></title>
+    <link href="http://spiritbook.github.com/blog/2013/09/18/linux-thread-priority/"/>
+    <updated>2013-09-18T22:50:00+08:00</updated>
+    <id>http://spiritbook.github.com/blog/2013/09/18/linux-thread-priority</id>
+    <content type="html"><![CDATA[<h2>1. Linux线程优先级范围</h2>
 
 <p>Linux定义线程优先级范围在头文件&lt;linux/sched.h></br></p>
 
@@ -257,44 +180,15 @@ root@c-desktop:~/Code# ps -o pid,priority,ni,cmd
 (4) <a href="http://www.linuxjournal.com/article/3910">http://www.linuxjournal.com/article/3910</a><br>
 (5) <a href="http://www.linuxjournal.com/magazine/real-time-linux-kernel-scheduler">http://www.linuxjournal.com/magazine/real-time-linux-kernel-scheduler</a><br>
 Author: chenxiawei@gmail.com<br></p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/06/01/x86-bt/">[Linux]X86-32函数调用过程堆栈</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-06-01T22:32:00+08:00" pubdate data-updated="true">Jun 1<span>st</span>, 2013</time>
-        
-         | <a href="/blog/2013/06/01/x86-bt/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>1. 测试代码如下，下文的分析基于该代码</h2>
+  <entry>
+    <title type="html"><![CDATA[[Linux]X86-32函数调用过程堆栈]]></title>
+    <link href="http://spiritbook.github.com/blog/2013/06/01/x86-bt/"/>
+    <updated>2013-06-01T22:32:00+08:00</updated>
+    <id>http://spiritbook.github.com/blog/2013/06/01/x86-bt</id>
+    <content type="html"><![CDATA[<h2>1. 测试代码如下，下文的分析基于该代码</h2>
 
 <pre><code>  1 #include &lt;stdio.h&gt;
   2
@@ -444,44 +338,15 @@ low
 (4) wiki <a href="http://en.wikibooks.org/wiki/X86_Disassembly/Functions_and_Stack_Frames">http://en.wikibooks.org/wiki/X86_Disassembly/Functions_and_Stack_Frames</a><br></p>
 
 <p>Author: chenxiawei@gmail.com<br></p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/05/29/linux-debug-skill/">Linux调试手段</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-05-29T21:19:00+08:00" pubdate data-updated="true">May 29<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/05/29/linux-debug-skill/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>1. 使用gdb</h2>
+  <entry>
+    <title type="html"><![CDATA[Linux调试手段]]></title>
+    <link href="http://spiritbook.github.com/blog/2013/05/29/linux-debug-skill/"/>
+    <updated>2013-05-29T21:19:00+08:00</updated>
+    <id>http://spiritbook.github.com/blog/2013/05/29/linux-debug-skill</id>
+    <content type="html"><![CDATA[<h2>1. 使用gdb</h2>
 
 <p>编译时，使用-g 参数把调试信息（函数名、变量名）加到可执行文件中。</p>
 
@@ -540,44 +405,15 @@ low
 <h2>3. 使用反汇编</h2>
 
 <p>TODO</p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/10/14/check-64bit/">编译时判断系统32位/64位</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-10-14T21:33:00+08:00" pubdate data-updated="true">Oct 14<span>th</span>, 2012</time>
-        
-         | <a href="/blog/2012/10/14/check-64bit/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://stackoverflow.com/questions/1505582/determining-32-vs-64-bit-in-c">http://stackoverflow.com/questions/1505582/determining-32-vs-64-bit-in-c</a></p>
+  <entry>
+    <title type="html"><![CDATA[编译时判断系统32位/64位]]></title>
+    <link href="http://spiritbook.github.com/blog/2012/10/14/check-64bit/"/>
+    <updated>2012-10-14T21:33:00+08:00</updated>
+    <id>http://spiritbook.github.com/blog/2012/10/14/check-64bit</id>
+    <content type="html"><![CDATA[<p><a href="http://stackoverflow.com/questions/1505582/determining-32-vs-64-bit-in-c">http://stackoverflow.com/questions/1505582/determining-32-vs-64-bit-in-c</a></p>
 
 <pre><code>#include &lt;limits.h&gt;
 #if ((ULONG_MAX) == (UINT_MAX))
@@ -641,44 +477,15 @@ error: missing binary operator before token &#8220;(&#8221;<br>
 因为#if 是在预编译时期进行，而sizeof是在编译时期进行。<br>
 Because sizeof is evaluated at compilation time while directives are evaluated before compilation, and the part that does that is not the compiler, so it won&#8217;t understand what sizeof means.<br>
 <a href="http://stackoverflow.com/questions/1612322/why-cant-i-use-sizeof-in-a-preprocessor-condition">http://stackoverflow.com/questions/1612322/why-cant-i-use-sizeof-in-a-preprocessor-condition</a></p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/08/27/readable-code-1/">The Art of Readable Code (1)</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-27T04:05:00+08:00" pubdate data-updated="true">Aug 27<span>th</span>, 2012</time>
-        
-         | <a href="/blog/2012/08/27/readable-code-1/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>“你的代码首先是为人写的，其次才是为计算机写的。”</p>
+  <entry>
+    <title type="html"><![CDATA[The Art of Readable Code (1)]]></title>
+    <link href="http://spiritbook.github.com/blog/2012/08/27/readable-code-1/"/>
+    <updated>2012-08-27T04:05:00+08:00</updated>
+    <id>http://spiritbook.github.com/blog/2012/08/27/readable-code-1</id>
+    <content type="html"><![CDATA[<p>“你的代码首先是为人写的，其次才是为计算机写的。”</p>
 
 <h2>1. 代码的写法应当使别人理解它所需的时间最小化。</h2>
 
@@ -716,44 +523,15 @@ delay(int delay_ms);
 MAX_ITEMS_IN_CART = 10
 最大值，则以MAX_、最小值以MIN_ 开头则不容易被误解其含义。
 </code></pre>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/08/19/prink/">Linux内核printk打印特殊内容</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-19T22:33:00+08:00" pubdate data-updated="true">Aug 19<span>th</span>, 2012</time>
-        
-         | <a href="/blog/2012/08/19/prink/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>1. 格式化打印MAC地址</h2>
+  <entry>
+    <title type="html"><![CDATA[linux内核printk打印特殊内容]]></title>
+    <link href="http://spiritbook.github.com/blog/2012/08/19/prink/"/>
+    <updated>2012-08-19T22:33:00+08:00</updated>
+    <id>http://spiritbook.github.com/blog/2012/08/19/prink</id>
+    <content type="html"><![CDATA[<h2>1. 格式化打印MAC地址</h2>
 
 <pre><code>u_int8_t mac[6] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
 printk("%pM\n", mac);
@@ -776,44 +554,15 @@ printk("%pI6c\n", &amp;ipv6);
 </code></pre>
 
 <p><a href="http://www.kernel.org/doc/Documentation/printk-formats.txt">http://www.kernel.org/doc/Documentation/printk-formats.txt</a></p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/08/10/kernel-userspace-communication/">LINUX 进程内核通信</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-08-10T20:44:00+08:00" pubdate data-updated="true">Aug 10<span>th</span>, 2012</time>
-        
-         | <a href="/blog/2012/08/10/kernel-userspace-communication/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>1. netlink socket</h2>
+  <entry>
+    <title type="html"><![CDATA[LINUX 进程内核通信]]></title>
+    <link href="http://spiritbook.github.com/blog/2012/08/10/kernel-userspace-communication/"/>
+    <updated>2012-08-10T20:44:00+08:00</updated>
+    <id>http://spiritbook.github.com/blog/2012/08/10/kernel-userspace-communication</id>
+    <content type="html"><![CDATA[<h2>1. netlink socket</h2>
 
 <p>netlink socekt是一种用于在内核态和用户态进程之间进行数据传输的特殊的IPC。它通过为内核模块提
 供一组特殊的API，并为用户程序提供了一组标准的socket接口的方式，实现了一种全双工的通讯连接。
@@ -838,44 +587,15 @@ printk("%pI6c\n", &amp;ipv6);
 <h2>3. ioctl接口</h2>
 
 <h2>4. proc fs</h2>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/07/23/octopress/">使用github创建blog</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-07-23T05:42:00+08:00" pubdate data-updated="true">Jul 23<span>rd</span>, 2012</time>
-        
-         | <a href="/blog/2012/07/23/octopress/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>code6同学很早就用github搞了一个博客，<a href="http://code6.github.com/">猛击这里</a> <p>
+  <entry>
+    <title type="html"><![CDATA[使用github创建blog]]></title>
+    <link href="http://spiritbook.github.com/blog/2012/07/23/octopress/"/>
+    <updated>2012-07-23T05:42:00+08:00</updated>
+    <id>http://spiritbook.github.com/blog/2012/07/23/octopress</id>
+    <content type="html"><![CDATA[<p>code6同学很早就用github搞了一个博客，<a href="http://code6.github.com/">猛击这里</a> <p>
 今天根据教程试了一下，发现在ubuntu下还是略有不同。本菜使用ubuntu10.04，大致需要操作如下。<p></p>
 
 <h2>0.略过github账号申请过程。</h2>
@@ -972,83 +692,25 @@ git push origin master
 <li><a href="http://www.yangzhiping.com/tech/octopress.html">Ruby开源项目介绍(1)：octopress——像黑客一样写博客</a><p></li>
 </ol>
 
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/07/23/chinese/">Chinese</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-07-23T01:46:00+08:00" pubdate data-updated="true">Jul 23<span>rd</span>, 2012</time>
-        
-         | <a href="/blog/2012/07/23/chinese/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>中文中文中文</p>
+  <entry>
+    <title type="html"><![CDATA[chinese]]></title>
+    <link href="http://spiritbook.github.com/blog/2012/07/23/chinese/"/>
+    <updated>2012-07-23T01:46:00+08:00</updated>
+    <id>http://spiritbook.github.com/blog/2012/07/23/chinese</id>
+    <content type="html"><![CDATA[<p>中文中文中文</p>
 汉字汉字汉字</p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/07/22/hello-world/">Hello World</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-07-22T22:09:00+08:00" pubdate data-updated="true">Jul 22<span>nd</span>, 2012</time>
-        
-         | <a href="/blog/2012/07/22/hello-world/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p> code </p>
+  <entry>
+    <title type="html"><![CDATA[Hello World]]></title>
+    <link href="http://spiritbook.github.com/blog/2012/07/22/hello-world/"/>
+    <updated>2012-07-22T22:09:00+08:00</updated>
+    <id>http://spiritbook.github.com/blog/2012/07/22/hello-world</id>
+    <content type="html"><![CDATA[<p> code </p>
 
 
 <p><code>printf("helloworld");</code></p>
@@ -1056,103 +718,12 @@ git push origin master
 <br />
 
 
-<p><img src="/images/ali.jpg" alt="Ali" /></p>
+<p><img src="http://spiritbook.github.com/images/ali.jpg" alt="Ali" /></p>
 
 <pre><code>int a, b;
 printf("%d\n", a + b);
 </code></pre>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
-</div>
-<aside class="sidebar">
-  
-    <section>
-  <h1>Recent Posts</h1>
-  <ul id="recent_posts">
-    
-      <li class="post">
-        <a href="/blog/2013/09/18/linux-thread-priority/">linux线程优先级</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/06/01/x86-bt/">[Linux]X86-32函数调用过程堆栈</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/05/29/linux-debug-skill/">Linux调试手段</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2012/10/14/check-64bit/">编译时判断系统32位/64位</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2012/08/27/readable-code-1/">The Art of Readable Code (1)</a>
-      </li>
-    
-  </ul>
-</section>
-
-
-
-
-
-
-  
-</aside>
-
-    </div>
-  </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2013 -  -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
-</p>
-
-</footer>
-  
-
-<script type="text/javascript">
-      var disqus_shortname = 'spiritbook';
-      
-        
-        var disqus_script = 'count.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
-
-
-
-
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
-</body>
-</html>
+</feed>
