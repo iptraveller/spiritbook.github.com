@@ -36,7 +36,9 @@ Linux定义线程优先级范围在头文件<linux/sched.h></br>
 		5 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 watchdog/0                                                                     
 		6 root      20   0     0    0    0 S  0.0  0.0   0:00.06 events/0     
 
-PR 和 NI 从 proc文件系统中读取得到 "/proc/[pid]/stat"<br> 
+PR为线程优先级，范围[0, 40)，实时优先级的线程显示为RT。值越小优先级越高<br>
+NI为Nice值，范围[-20, 20)，PR值为初始线程优先级加上Nice值。<br>
+PR 和 NI 值都是从 proc文件系统中读取得到 "/proc/[pid]/stat"<br> 
 	cat /proc/1/stat
 	1 (init) S 0 1 1 0 -1 4202752 4680 154640 23 343 6 136 154 151 20 0 ...
 	cat /proc/3/stat
@@ -84,7 +86,33 @@ procps/output.c中含有具体说明<br>
 	// "pri"               (was 20..60, now    0..139)
 	// "pri_api"   --  match up w/ RT API    (-40..99)
 
-## 3. Reference
+## 3 修改线程优先级
+### 1 nice命令
+nice命令可以指定线程加载时的Nice值，来改变线程优先级。<br>
+	root@c-desktop:~/Code# nice -n -20 ./a.out &
+	root@c-desktop:~/Code# ps -o pid,priority,ni,cmd
+	  PID PRI  NI CMD
+	 2138   0 -20 ./a.out
+	 
+	root@c-desktop:~/Code# nice -n 19 ./a.out &
+	root@c-desktop:~/Code# ps -o pid,priority,ni,cmd
+	  PID PRI  NI CMD
+	 2145  39  19 ./a.out
+
+### 2 renice命令
+renice命令可以改变运行中线程的Nice值，进而改变线程的优先级。<br>
+	root@c-desktop:~/Code# ps -o pid,priority,ni,cmd
+	  PID PRI  NI CMD
+	 2145  39  19 ./a.out
+	 
+	root@c-desktop:~/Code# renice -n -20 -p 2145
+	2145: old priority 19, new priority -20
+	
+	root@c-desktop:~/Code# ps -o pid,priority,ni,cmd
+	  PID PRI  NI CMD
+	 2145   0 -20 ./a.out
+
+## 4. Reference
 (1) [http://superuser.com/questions/286752/unix-ps-l-priority](http://superuser.com/questions/286752/unix-ps-l-priority)<br>
 (2) [http://procps.sourceforge.net/download.html](http://procps.sourceforge.net/download.html) 需要翻墙
 
