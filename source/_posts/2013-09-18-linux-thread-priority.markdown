@@ -26,7 +26,7 @@ Linux定义线程优先级范围在头文件<linux/sched.h></br>
 	#define MAX_PRIO			(MAX_RT_PRIO + 40)
 	#define DEFAULT_PRIO		(MAX_RT_PRIO + 20)
 
-## 1. Linux线程调度策略
+## 2. Linux线程调度策略
 Linux定义线程调度策略在头文件<linux/sched.h></br>
 	#define SCHED_NORMAL	0
 	#define SCHED_FIFO		1
@@ -41,9 +41,9 @@ SCHED_RR：采用实时调度策略，且时间片轮转，时间片用完，系
 SCHED_BATCH：针对批处理进程。<br>
 SCHED_IDLE：使用此调度器的进程的优先级最低。在实现CFS时引入。<br>
 
-## 2. Linux线程调度算法
+## 3. Linux线程调度算法
 
-## 3 shell下查看线程优先级
+## 4 shell下查看线程优先级
 ### 1 top命令
 	  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND                                                                          
 		1 root      20   0  2804 1576 1192 S  0.0  0.3   0:00.97 init                                                                           
@@ -103,7 +103,7 @@ procps/output.c中含有具体说明<br>
 	// "pri"               (was 20..60, now    0..139)
 	// "pri_api"   --  match up w/ RT API    (-40..99)
 
-## 4 shell下修改线程优先级
+## 5 shell下修改线程优先级
 ### 1 nice命令
 nice命令可以指定线程加载时的Nice值，来改变线程优先级。<br>
 nice -n [priority] [command] <br>
@@ -134,7 +134,7 @@ renice -n [priority] -p [pid] <br>
 	  PID PRI  NI CMD
 	 2145   0 -20 ./a.out
 
-## 5. Reference
+## 6. Reference
 (1) [http://oreilly.com/catalog/linuxkernel/chapter/ch10.html](http://oreilly.com/catalog/linuxkernel/chapter/ch10.html)<br>
 (2) [http://superuser.com/questions/286752/unix-ps-l-priority](http://superuser.com/questions/286752/unix-ps-l-priority)<br>
 (3) [http://procps.sourceforge.net/download.html](http://procps.sourceforge.net/download.html) 需要翻墙<br>
