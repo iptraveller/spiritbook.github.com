@@ -40,7 +40,6 @@ SCHED_FIFO：采用实时调度策略，且先到先服务，一直运行直到�
 SCHED_RR：采用实时调度策略，且时间片轮转，时间片用完，系统将重新分配时间片，并置于就绪队列尾。<br>
 SCHED_BATCH：针对批处理进程。<br>
 SCHED_IDLE：使用此调度器的进程的优先级最低。在实现CFS时引入。<br>
-各个类型的详细说明在[http://www.linuxjournal.com/article/3910](http://www.linuxjournal.com/article/3910)<br>
 
 ## 2. Linux线程调度算法
 
@@ -136,8 +135,9 @@ renice -n [priority] -p [pid] <br>
 	 2145   0 -20 ./a.out
 
 ## 5. Reference
-(1) [http://superuser.com/questions/286752/unix-ps-l-priority](http://superuser.com/questions/286752/unix-ps-l-priority)<br>
-(2) [http://procps.sourceforge.net/download.html](http://procps.sourceforge.net/download.html) 需要翻墙<br>
-(3) [http://www.linuxjournal.com/article/3910](http://www.linuxjournal.com/article/3910)<br>
-
+(1) [http://oreilly.com/catalog/linuxkernel/chapter/ch10.html](http://oreilly.com/catalog/linuxkernel/chapter/ch10.html)<br>
+(2) [http://superuser.com/questions/286752/unix-ps-l-priority](http://superuser.com/questions/286752/unix-ps-l-priority)<br>
+(3) [http://procps.sourceforge.net/download.html](http://procps.sourceforge.net/download.html) 需要翻墙<br>
+(4) [http://www.linuxjournal.com/article/3910](http://www.linuxjournal.com/article/3910)<br>
+(5) [http://www.linuxjournal.com/magazine/real-time-linux-kernel-scheduler](http://www.linuxjournal.com/magazine/real-time-linux-kernel-scheduler)<br>
 Author: chenxiawei@gmail.com<br>
