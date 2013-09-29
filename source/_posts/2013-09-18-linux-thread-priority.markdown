@@ -89,6 +89,8 @@ procps/output.c中含有具体说明<br>
 ## 3 修改线程优先级
 ### 1 nice命令
 nice命令可以指定线程加载时的Nice值，来改变线程优先级。<br>
+nice -n [priority] [command] <br>
+输入的优先级超过19时取19，小于-20时取-20。<br>
 	root@c-desktop:~/Code# nice -n -20 ./a.out &
 	root@c-desktop:~/Code# ps -o pid,priority,ni,cmd
 	  PID PRI  NI CMD
@@ -101,6 +103,9 @@ nice命令可以指定线程加载时的Nice值，来改变线程优先级。<br
 
 ### 2 renice命令
 renice命令可以改变运行中线程的Nice值，进而改变线程的优先级。<br>
+renice -n [priority] -p [pid] <br>
+输入的优先级超过19时取19，小于-20时取-20。<br>
+
 	root@c-desktop:~/Code# ps -o pid,priority,ni,cmd
 	  PID PRI  NI CMD
 	 2145  39  19 ./a.out
