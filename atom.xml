@@ -4,7 +4,7 @@
   <title><![CDATA[Ali]]></title>
   <link href="http://spiritbook.github.com/atom.xml" rel="self"/>
   <link href="http://spiritbook.github.com/"/>
-  <updated>2014-05-16T22:52:23+08:00</updated>
+  <updated>2014-05-16T22:54:32+08:00</updated>
   <id>http://spiritbook.github.com/</id>
   <author>
     <name><![CDATA[]]></name>
@@ -24,9 +24,9 @@
 
 <p>内存块管理结构，在用户申请内存的前导部分添加部分管理信息来实现内存管理。<br>
 chunk拆分<br>
-<img src="http://spiritbook.github.com/images/chunk1.efm" alt="chunk1" />
+<img src="http://spiritbook.github.com/images/chunk1.jpg" alt="chunk1" />
 chunk组合<br>
-<img src="http://spiritbook.github.com/images/chunk2.efm" alt="chunk2" /></p>
+<img src="http://spiritbook.github.com/images/chunk2.jpg" alt="chunk2" /></p>
 
 <h2>2. 管理结构</h2>
 
@@ -73,7 +73,7 @@ chunk组合<br>
 从系统分配出的内存先保存在top，用户申请内存时从top中申请并分割，由top判断是否需要向系统申请内存。<br>
 要还给系统的内存也先保存在top，用户回收内存时，先回收合并到top，由top判断是否回收给系统。<br></p>
 
-<p><img src="http://spiritbook.github.com/images/bin.efm" alt="bin" /></p>
+<p><img src="http://spiritbook.github.com/images/bin.jpg" alt="bin" /></p>
 
 <h2>3. 算法流程</h2>
 
