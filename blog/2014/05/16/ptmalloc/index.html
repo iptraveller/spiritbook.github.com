@@ -100,9 +100,9 @@ chunk拆分 chunk组合 2. 管理结构 2.1 Fastbin 共7个队列，每个队列
 
 <p>内存块管理结构，在用户申请内存的前导部分添加部分管理信息来实现内存管理。<br>
 chunk拆分<br>
-<img src="/images/chunk1.jpg" alt="chunk1" />
+<img src="/images/chunk1.efm" alt="chunk1" />
 chunk组合<br>
-<img src="/images/chunk2.jpg" alt="chunk2" /></p>
+<img src="/images/chunk2.efm" alt="chunk2" /></p>
 
 <h2>2. 管理结构</h2>
 
@@ -148,6 +148,8 @@ chunk组合<br>
 <p>一个巨大的chunk，作为bin与系统内存之间的过渡层。<br>
 从系统分配出的内存先保存在top，用户申请内存时从top中申请并分割，由top判断是否需要向系统申请内存。<br>
 要还给系统的内存也先保存在top，用户回收内存时，先回收合并到top，由top判断是否回收给系统。<br></p>
+
+<p><img src="/images/bin.efm" alt="bin" /></p>
 
 <h2>3. 算法流程</h2>
 
