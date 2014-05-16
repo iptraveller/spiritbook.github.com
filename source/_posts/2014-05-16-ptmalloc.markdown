@@ -1,0 +1,114 @@
+
+---
+layout: post
+title: "ptmalloc实现分析"
+date: 2014-05-16 22:50
+comments: true
+categories: 
+---
+
+## 1. 数据结构：
+### 1.1 chunk
+内存块管理结构，在用户申请内存的前导部分添加部分管理信息来实现内存管理。<br>
+chunk拆分<br>
+<img src="/images/chunk1.jpg" alt="chunk1" />
+chunk组合<br>
+<img src="/images/chunk2.jpg" alt="chunk2" />
+## 2. 管理结构
+### 2.1 Fastbin 
+共7个队列，每个队列保存*固定*长度的空闲chunk<br>
+	Bin          Size       Note
+	[0] -> [6]  [16, 64]  相邻队列chunk大小以8字节递增。
+
+### 2.2 Bin - smallbin
+共62个队列，每个队列保存*固定*长度的空闲chunk。<br>
+	Bin          Size       Note
+	[2] -> [63]  [16, 512)  相邻队列chunk大小以8字节递增。
+
+### 2.3 Bin - largebin
+共63个队列，每个队列保存*一定范围*长度的空闲chunk，每个队列中的chunk根据长度从小到大按序排列。<br>
+	Bin             Size range        Note
+	[64] -> [94]    [512, 2496)       范围大小为64字节
+	[95]            [2496, 2560)      N/A
+	[96] -> [111]   [2560, 10752)     范围大小为512字节
+	[112]           [10752, 12288)    N/A
+	[113] -> [119]  [12288, 40960)    范围大小为4096字节
+	[120]           [40960, 65536)    N/A
+	[121] -> [123]  [65536, 163840)   范围大小为32768字节
+	[124]           [163840, 262144)  N/A
+	[125]           [262144, 524287)  范围为256K字节
+	[126]           [524288, MAX)     N/A    
+
+### 2.4 Bin - unsorted bin
+固定占据Bin[1]，保存无序的空闲chunk链表，一般为释放后的chunk或者分割后的chunk碎片。<br>
+
+### 2.5 Top
+一个巨大的chunk，作为bin与系统内存之间的过渡层。<br>
+从系统分配出的内存先保存在top，用户申请内存时从top中申请并分割，由top判断是否需要向系统申请内存。<br>
+要还给系统的内存也先保存在top，用户回收内存时，先回收合并到top，由top判断是否回收给系统。<br>
+
+<img src="/images/bin.jpg" alt="bin" />
+
+## 3. 算法流程
+### 3.1 Malloc
+1.  用户申请的大小对齐到内部需要的chunk的大小（加上4字节管理长度并且8字节对齐，最小为16字节）。<br>
+2.  申请大小<=64，从fastbin对应大小的空闲队列中查找，若找到空闲chunk，取出队首chunk，<br>
+    GOTO STEP 17（同一个队列的chunk都一样大，取队首的应该是为了缓存命中高）。<br>
+3.  申请大小<512，从smallbin对应大小的空闲队列中查找，若找到空闲chunk，取出队尾chunk，<br>
+    GOTO STEP 17（同一个队列的chunk都一样大，取队尾应该是为了让每个chunk都有被选中的机会）。<br>
+4.  申请大小>=512，并且fastbin不为空，触发fastbin回收（不直接从largebin中分配，应该是为了先让小碎片合并后再分配）。<br>
+<i>----到这里则表示申请的空间在fastbin和smallbin找不到空闲的或者申请大小>=512字节----</i><br>
+5.  遍历unsorted队列中的chunk（最多遍历10000次）<br>
+6.  如果申请大小<512，并且unsorted队列只有一个chunk而这个chunk是上一次的（？），同时该chunk大于申请大小，<br>
+    则在队列中的chunk头部分配出一个申请大小的chunk，剩余部分构造新chunk继续保持在unsorted队列中，GOTO STEP 17。<br>
+7.  将遍历到的chunk从队列中取出<br>
+8.  如果遍历到chunk大小与需要申请的大小一致，GOTO STEP 17。<br>
+9.  如果chunk大小属于smallbin则加入到smallbin中对应大小队列的队首。<br>
+10. 如果chunk大小属于largebin，则按序插入到largebin中对应大小范围的队列中，并使得该chunk不小于它前一个chunk的大小。<br>
+<i>----到这里表示申请的大小从unsorted队列中无法直接分配----</i><br>
+11. 如果申请的大小属于largebin，则根据大小找到对应largebin中的指定队列，遍历队列，<br>
+    找到第一个不小于申请大小的chunk，从队列中取出，<br>
+    若chunk的大小大于申请的大小，则在chunk头部分配出一个申请大小的chunk，剩余部分构造chunk加入到unsorted队列，GOTO STEP 17。<br>
+    若chunk的大小等于申请的大小，GOTO STEP 17。<br>
+<i>----到这里表示申请大小所对应的最合适的chunk可能找不到了----</i><br>
+12. 找到下一个能满足申请大小的bin队列，若找不到这种队列则表示现有的bin中找不到的，GOTO STEP 13<br>
+    若找到，则该队列中所有chunk的大小都应该比我们要申请的大，取出新bin的最后一个chunk，在chunk头部分配出一个申请大小的chunk，<br>
+    剩余部分构造chunk加入到unsorted队列，GOTO STEP 17。<br>
+<i>----到这里表示各种bin已经找不到能满足要申请的大小的了----</i><br>
+13. 如果top中剩下chunk能满足申请的大小，则在top头部分配出一个申请大小的chunk，剩余部分构造chunk继续保留在top，GOTO STEP 17。<br>
+    否则如果这时候fastbin不为空（前面的步骤未触发回收fastbin时），则先触发fastbin回收，GOTO STEP 5<br>
+<i>----到这里表示内部所有的缓存都找不到了，需要向操作系统申请内存了----</i><br>
+14. 如果申请的大小超过了MMAP水线（缺省128K），则通过mmap向系统申请一块内存（至少一个页），<br>
+    并构造chunk，GOTO STEP 17（申请大内存时候，一次就mmap一个chunk）。<br>
+<i>----到这里表示申请小于128K的内存或者mmap失败了----</i><br>
+15. 如果是main_arena区域申请，则使用brk扩展内存（缺省至少一次128K），并将申请到的内存扩展到top中<br>
+16. 如果top的长度还不足申请的chunk，则返回失败（申请系统内存失败导致top扩展不了） <br>
+    否则top头部切出一个申请大小的chunk，剩余部分构造chunk继续保留在top，GOTO STEP 17。<br>
+17. 通过分配的chunk计算出返回给用户的指针（偏移+8）<br>
+
+### 3.2 Free
+1. 通过用户的指针转换成内部chunk的指针（偏移-8）<br>
+2. 释放大小<=64，则加入到指定大小对应的fastbin的队首，结束。<br>
+3. 释放的chunk带有mmap标记，则直接munmap，结束。<br>
+4. 若相邻的上一个chunk为空闲，则把相邻的上一个chunk从链表中摘除（可能是unsorted，也可能是small，不可能是fastbin）<br>
+   和释放的chunk合并。<br>
+5. 若合并后（或者不需要合并）的chunk与Top相邻，则把该chunk合并到Top中。<br>
+   若不相邻，则把该chunk加入到unsorted队列首部。<br>
+6. 若合并后（或者不需要合并）chunk的大小大于64K，则触发fastbin回收，<br>
+   并触发top回收，使得top剩余1个页大小。<br>
+
+### Notice：
+1. 当前chunk是否被占用的标记是保存在相邻的下一个chunk中<br>
+2. fastbin中的chunk始终是置上被使用标记的，目的是为了防止被合并。<br>
+
+### Tips:
+1. 给全局变量__malloc_hook赋值可以替换malloc缺省行为 <br>
+2. 给全局变量__free_hook赋值可以替换free缺省行为 <br>
+3. 给全局变量__realloc_hook赋值可以替换realloc缺省行为 <br>
+
+## 4. References：
+(1). glibc-2.9源码<br>
+(2). [http://wenku.baidu.com/view/20033e124431b90d6c85c718.html](http://wenku.baidu.com/view/20033e124431b90d6c85c718.html)<br>
+(3). [http://gee.cs.oswego.edu/dl/html/malloc.html](http://gee.cs.oswego.edu/dl/html/malloc.html)<br>
+(4). [ftp://ftp.cs.utexas.edu/pub/garbage/allocsrv.ps](ftp://ftp.cs.utexas.edu/pub/garbage/allocsrv.ps)<br>
+Author: chenxiawei@gmail.com<br>

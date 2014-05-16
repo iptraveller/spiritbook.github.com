@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>linux-thread-priority - Ali</title>
+  <title>linux线程优先级 - Ali</title>
   <meta name="author" content="">
 
   
@@ -67,7 +67,7 @@
   
   <header>
     
-      <h1 class="entry-title">Linux-thread-priority</h1>
+      <h1 class="entry-title">Linux线程优先级</h1>
     
     
       <p class="meta">
@@ -116,7 +116,27 @@
 #define DEFAULT_PRIO        (MAX_RT_PRIO + 20)
 </code></pre>
 
-<h2>2 查看线程优先级</h2>
+<h2>2. Linux线程调度策略</h2>
+
+<p>Linux定义线程调度策略在头文件&lt;linux/sched.h></br></p>
+
+<pre><code>#define SCHED_NORMAL    0
+#define SCHED_FIFO      1
+#define SCHED_RR        2
+#define SCHED_BATCH     3
+/* SCHED_ISO: reserved but not implemented yet */
+#define SCHED_IDLE      5
+</code></pre>
+
+<p>SCHED_NORMAL即为SCHED_OTHER：采用分时调度策略。<br>
+SCHED_FIFO：采用实时调度策略，且先到先服务，一直运行直到有更高优先级任务到达或自己放弃。<br>
+SCHED_RR：采用实时调度策略，且时间片轮转，时间片用完，系统将重新分配时间片，并置于就绪队列尾。<br>
+SCHED_BATCH：针对批处理进程。<br>
+SCHED_IDLE：使用此调度器的进程的优先级最低。在实现CFS时引入。<br></p>
+
+<h2>3. Linux线程调度算法</h2>
+
+<h2>4 shell下查看线程优先级</h2>
 
 <h3>1 top命令</h3>
 
@@ -129,18 +149,20 @@
     6 root      20   0     0    0    0 S  0.0  0.0   0:00.06 events/0     
 </code></pre>
 
-<p>PR 和 NI 从 proc文件系统中读取得到 &#8220;/proc/[pid]/stat&#8221;<br></p>
+<p>PR为线程优先级，范围[0, 40)，实时优先级的线程显示为RT。值越小优先级越高<br>
+NI为Nice值，范围[-20, 20)，PR值为初始线程优先级加上Nice值。<br>
+PR 和 NI 值都是从 proc文件系统中读取得到 &#8220;/proc/[pid]/stat&#8221;<br></p>
 
 <pre><code>cat /proc/1/stat
 1 (init) S 0 1 1 0 -1 4202752 4680 154640 23 343 6 136 154 151 20 0 ...
 cat /proc/3/stat
 3 (migration/0) S 2 0 0 0 -1 2216730688 0 0 0 0 0 0 0 0 -100 0  ...
-priority %ld
 </code></pre>
 
-<p>man proc stat 查看第18项和第19项的说明<br></p>
+<p>通过man proc 查看stat的第18项和第19项的说明如下<br></p>
 
-<pre><code>(18) (Explanation for Linux 2.6) For processes running a real-time scheduling policy (policy below; see sched_setscheduler(2)), 
+<pre><code>priority %ld
+(18) (Explanation for Linux 2.6) For processes running a real-time scheduling policy (policy below; see sched_setscheduler(2)), 
 this is the negated scheduling priority, minus one; that is, a number in the range -2 to -100, corresponding to real-time priorities 1 to 99. 
 For processes running under a non-real-time scheduling policy, this is the raw nice value (setpriority(2)) as represented in the kernel. 
 The kernel stores nice values as numbers in the range 0 (high) to 39 (low), corresponding to the user-visible nice range of -20 to 19.
@@ -163,7 +185,7 @@ F S   UID   PID  PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
 1 S     0     6     2  0  80   0 -     0 worker ?        00:00:00 events/0
 </code></pre>
 
-<p>这里的PRI为什么和top的PRI不一样呢，通过查看procps源代码找到了原因<br></p>
+<p>这里的PRI为什么和top的PR不一样呢，通过查看procps源代码找到了原因<br></p>
 
 <pre><code>In linux procps, the column labeled "PRI" in ps -l is -o opri
 c@c-desktop:~$ ps -e -o pid,pri,opri,intpri,priority,ni,cmd
@@ -187,12 +209,51 @@ c@c-desktop:~$ ps -e -o pid,pri,opri,intpri,priority,ni,cmd
 // "pri_api"   --  match up w/ RT API    (-40..99)
 </code></pre>
 
-<h2>3. Reference</h2>
+<h2>5 shell下修改线程优先级</h2>
 
-<p>(1) <a href="http://superuser.com/questions/286752/unix-ps-l-priority">http://superuser.com/questions/286752/unix-ps-l-priority</a><br>
-(2) <a href="http://procps.sourceforge.net/download.html">http://procps.sourceforge.net/download.html</a> 需要翻墙</p>
+<h3>1 nice命令</h3>
 
-<p>Author: chenxiawei@gmail.com<br></p>
+<p>nice命令可以指定线程加载时的Nice值，来改变线程优先级。<br>
+nice -n [priority] [command] <br>
+输入的优先级超过19时取19，小于-20时取-20。<br></p>
+
+<pre><code>root@c-desktop:~/Code# nice -n -20 ./a.out &amp;
+root@c-desktop:~/Code# ps -o pid,priority,ni,cmd
+  PID PRI  NI CMD
+ 2138   0 -20 ./a.out
+
+root@c-desktop:~/Code# nice -n 19 ./a.out &amp;
+root@c-desktop:~/Code# ps -o pid,priority,ni,cmd
+  PID PRI  NI CMD
+ 2145  39  19 ./a.out
+</code></pre>
+
+<h3>2 renice命令</h3>
+
+<p>renice命令可以改变运行中线程的Nice值，进而改变线程的优先级。<br>
+renice -n [priority] -p [pid] <br>
+输入的优先级超过19时取19，小于-20时取-20。<br></p>
+
+<pre><code>root@c-desktop:~/Code# ps -o pid,priority,ni,cmd
+  PID PRI  NI CMD
+ 2145  39  19 ./a.out
+
+root@c-desktop:~/Code# renice -n -20 -p 2145
+2145: old priority 19, new priority -20
+
+root@c-desktop:~/Code# ps -o pid,priority,ni,cmd
+  PID PRI  NI CMD
+ 2145   0 -20 ./a.out
+</code></pre>
+
+<h2>6. Reference</h2>
+
+<p>(1) <a href="http://oreilly.com/catalog/linuxkernel/chapter/ch10.html">http://oreilly.com/catalog/linuxkernel/chapter/ch10.html</a><br>
+(2) <a href="http://superuser.com/questions/286752/unix-ps-l-priority">http://superuser.com/questions/286752/unix-ps-l-priority</a><br>
+(3) <a href="http://procps.sourceforge.net/download.html">http://procps.sourceforge.net/download.html</a> 需要翻墙<br>
+(4) <a href="http://www.linuxjournal.com/article/3910">http://www.linuxjournal.com/article/3910</a><br>
+(5) <a href="http://www.linuxjournal.com/magazine/real-time-linux-kernel-scheduler">http://www.linuxjournal.com/magazine/real-time-linux-kernel-scheduler</a><br>
+Author: chenxiawei@gmail.com<br></p>
 </div>
 
 
@@ -235,6 +296,8 @@ c@c-desktop:~$ ps -e -o pid,pri,opri,intpri,priority,ni,cmd
         <a class="basic-alignment left" href="/blog/2013/06/01/x86-bt/" title="Previous Post: [Linux]X86-32函数调用过程堆栈">&laquo; [Linux]X86-32函数调用过程堆栈</a>
       
       
+        <a class="basic-alignment right" href="/blog/2014/05/16/ptmalloc/" title="Next Post: ptmalloc实现分析">ptmalloc实现分析 &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -254,7 +317,11 @@ c@c-desktop:~$ ps -e -o pid,pri,opri,intpri,priority,ni,cmd
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2013/09/18/linux-thread-priority/">linux-thread-priority</a>
+        <a href="/blog/2014/05/16/ptmalloc/">ptmalloc实现分析</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/18/linux-thread-priority/">linux线程优先级</a>
       </li>
     
       <li class="post">
@@ -267,10 +334,6 @@ c@c-desktop:~$ ps -e -o pid,pri,opri,intpri,priority,ni,cmd
     
       <li class="post">
         <a href="/blog/2012/10/14/check-64bit/">编译时判断系统32位/64位</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2012/08/27/readable-code-1/">The Art of Readable Code (1)</a>
       </li>
     
   </ul>
@@ -288,7 +351,7 @@ c@c-desktop:~$ ps -e -o pid,pri,opri,intpri,priority,ni,cmd
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2013 -  -
+  Copyright &copy; 2014 -  -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
