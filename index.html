@@ -9,7 +9,9 @@
   <meta name="author" content="">
 
   
-  <meta name="description" content="1. Linux线程优先级范围 Linux定义线程优先级范围在头文件&lt;linux/sched.h> /* * Priority of a process goes from 0..MAX_PRIO-1, valid RT * priority is 0..MAX_RT_PRIO-1, and &hellip;">
+  <meta name="description" content="1. 数据结构： 1.1 chunk 内存块管理结构，在用户申请内存的前导部分添加部分管理信息来实现内存管理。
+chunk拆分 chunk组合 2. 管理结构 2.1 Fastbin 共7个队列，每个队列保存固定长度的空闲chunk Bin Size Note
+[0] -&gt; [6] [16 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +66,179 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/05/16/ptmalloc/">Ptmalloc实现分析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-16T22:50:00+08:00" pubdate data-updated="true">May 16<span>th</span>, 2014</time>
+        
+         | <a href="/blog/2014/05/16/ptmalloc/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>1. 数据结构：</h2>
+
+<h3>1.1 chunk</h3>
+
+<p>内存块管理结构，在用户申请内存的前导部分添加部分管理信息来实现内存管理。<br>
+chunk拆分<br>
+<img src="/images/chunk1.jpg" alt="chunk1" />
+chunk组合<br>
+<img src="/images/chunk2.jpg" alt="chunk2" /></p>
+
+<h2>2. 管理结构</h2>
+
+<h3>2.1 Fastbin</h3>
+
+<p>共7个队列，每个队列保存<em>固定</em>长度的空闲chunk<br></p>
+
+<pre><code>Bin          Size       Note
+[0] -&gt; [6]  [16, 64]  相邻队列chunk大小以8字节递增。
+</code></pre>
+
+<h3>2.2 Bin - smallbin</h3>
+
+<p>共62个队列，每个队列保存<em>固定</em>长度的空闲chunk。<br></p>
+
+<pre><code>Bin          Size       Note
+[2] -&gt; [63]  [16, 512)  相邻队列chunk大小以8字节递增。
+</code></pre>
+
+<h3>2.3 Bin - largebin</h3>
+
+<p>共63个队列，每个队列保存<em>一定范围</em>长度的空闲chunk，每个队列中的chunk根据长度从小到大按序排列。<br></p>
+
+<pre><code>Bin             Size range        Note
+[64] -&gt; [94]    [512, 2496)       范围大小为64字节
+[95]            [2496, 2560)      N/A
+[96] -&gt; [111]   [2560, 10752)     范围大小为512字节
+[112]           [10752, 12288)    N/A
+[113] -&gt; [119]  [12288, 40960)    范围大小为4096字节
+[120]           [40960, 65536)    N/A
+[121] -&gt; [123]  [65536, 163840)   范围大小为32768字节
+[124]           [163840, 262144)  N/A
+[125]           [262144, 524287)  范围为256K字节
+[126]           [524288, MAX)     N/A    
+</code></pre>
+
+<h3>2.4 Bin - unsorted bin</h3>
+
+<p>固定占据Bin[1]，保存无序的空闲chunk链表，一般为释放后的chunk或者分割后的chunk碎片。<br></p>
+
+<h3>2.5 Top</h3>
+
+<p>一个巨大的chunk，作为bin与系统内存之间的过渡层。<br>
+从系统分配出的内存先保存在top，用户申请内存时从top中申请并分割，由top判断是否需要向系统申请内存。<br>
+要还给系统的内存也先保存在top，用户回收内存时，先回收合并到top，由top判断是否回收给系统。<br></p>
+
+<h2>3. 算法流程</h2>
+
+<h3>3.1 Malloc</h3>
+
+<ol>
+<li>用户申请的大小对齐到内部需要的chunk的大小（加上4字节管理长度并且8字节对齐，最小为16字节）。<br></li>
+<li>申请大小&lt;=64，从fastbin对应大小的空闲队列中查找，若找到空闲chunk，取出队首chunk，<br>
+GOTO STEP 17（同一个队列的chunk都一样大，取队首的应该是为了缓存命中高）。<br></li>
+<li>申请大小&lt;512，从smallbin对应大小的空闲队列中查找，若找到空闲chunk，取出队尾chunk，<br>
+GOTO STEP 17（同一个队列的chunk都一样大，取队尾应该是为了让每个chunk都有被选中的机会）。<br></li>
+<li>申请大小>=512，并且fastbin不为空，触发fastbin回收（不直接从largebin中分配，应该是为了先让小碎片合并后再分配）。<br>
+<i>&#8212;-到这里则表示申请的空间在fastbin和smallbin找不到空闲的或者申请大小>=512字节&#8212;-</i><br></li>
+<li>遍历unsorted队列中的chunk（最多遍历10000次）<br></li>
+<li>如果申请大小&lt;512，并且unsorted队列只有一个chunk而这个chunk是上一次的（？），同时该chunk大于申请大小，<br>
+则在队列中的chunk头部分配出一个申请大小的chunk，剩余部分构造新chunk继续保持在unsorted队列中，GOTO STEP 17。<br></li>
+<li>将遍历到的chunk从队列中取出<br></li>
+<li>如果遍历到chunk大小与需要申请的大小一致，GOTO STEP 17。<br></li>
+<li>如果chunk大小属于smallbin则加入到smallbin中对应大小队列的队首。<br></li>
+<li>如果chunk大小属于largebin，则按序插入到largebin中对应大小范围的队列中，并使得该chunk不小于它前一个chunk的大小。<br>
+<i>&#8212;-到这里表示申请的大小从unsorted队列中无法直接分配&#8212;-</i><br></li>
+<li>如果申请的大小属于largebin，则根据大小找到对应largebin中的指定队列，遍历队列，<br>
+找到第一个不小于申请大小的chunk，从队列中取出，<br>
+若chunk的大小大于申请的大小，则在chunk头部分配出一个申请大小的chunk，剩余部分构造chunk加入到unsorted队列，GOTO STEP 17。<br>
+若chunk的大小等于申请的大小，GOTO STEP 17。<br>
+<i>&#8212;-到这里表示申请大小所对应的最合适的chunk可能找不到了&#8212;-</i><br></li>
+<li>找到下一个能满足申请大小的bin队列，若找不到这种队列则表示现有的bin中找不到的，GOTO STEP 13<br>
+若找到，则该队列中所有chunk的大小都应该比我们要申请的大，取出新bin的最后一个chunk，在chunk头部分配出一个申请大小的chunk，<br>
+剩余部分构造chunk加入到unsorted队列，GOTO STEP 17。<br>
+<i>&#8212;-到这里表示各种bin已经找不到能满足要申请的大小的了&#8212;-</i><br></li>
+<li>如果top中剩下chunk能满足申请的大小，则在top头部分配出一个申请大小的chunk，剩余部分构造chunk继续保留在top，GOTO STEP 17。<br>
+否则如果这时候fastbin不为空（前面的步骤未触发回收fastbin时），则先触发fastbin回收，GOTO STEP 5<br>
+<i>&#8212;-到这里表示内部所有的缓存都找不到了，需要向操作系统申请内存了&#8212;-</i><br></li>
+<li>如果申请的大小超过了MMAP水线（缺省128K），则通过mmap向系统申请一块内存（至少一个页），<br>
+并构造chunk，GOTO STEP 17（申请大内存时候，一次就mmap一个chunk）。<br>
+<i>&#8212;-到这里表示申请小于128K的内存或者mmap失败了&#8212;-</i><br></li>
+<li>如果是main_arena区域申请，则使用brk扩展内存（缺省至少一次128K），并将申请到的内存扩展到top中<br></li>
+<li>如果top的长度还不足申请的chunk，则返回失败（申请系统内存失败导致top扩展不了） <br>
+否则top头部切出一个申请大小的chunk，剩余部分构造chunk继续保留在top，GOTO STEP 17。<br></li>
+<li>通过分配的chunk计算出返回给用户的指针（偏移+8）<br></li>
+</ol>
+
+
+<h3>3.2 Free</h3>
+
+<ol>
+<li>通过用户的指针转换成内部chunk的指针（偏移-8）<br></li>
+<li>释放大小&lt;=64，则加入到指定大小对应的fastbin的队首，结束。<br></li>
+<li>释放的chunk带有mmap标记，则直接munmap，结束。<br></li>
+<li>若相邻的上一个chunk为空闲，则把相邻的上一个chunk从链表中摘除（可能是unsorted，也可能是small，不可能是fastbin）<br>
+和释放的chunk合并。<br></li>
+<li>若合并后（或者不需要合并）的chunk与Top相邻，则把该chunk合并到Top中。<br>
+若不相邻，则把该chunk加入到unsorted队列首部。<br></li>
+<li>若合并后（或者不需要合并）chunk的大小大于64K，则触发fastbin回收，<br>
+并触发top回收，使得top剩余1个页大小。<br></li>
+</ol>
+
+
+<h3>Notice：</h3>
+
+<ol>
+<li>当前chunk是否被占用的标记是保存在相邻的下一个chunk中<br></li>
+<li>fastbin中的chunk始终是置上被使用标记的，目的是为了防止被合并。<br></li>
+</ol>
+
+
+<h3>Tips:</h3>
+
+<ol>
+<li>给全局变量__malloc_hook赋值可以替换malloc缺省行为 <br></li>
+<li>给全局变量__free_hook赋值可以替换free缺省行为 <br></li>
+<li>给全局变量__realloc_hook赋值可以替换realloc缺省行为 <br></li>
+</ol>
+
+
+<h2>4. References：</h2>
+
+<p>(1). glibc-2.9源码<br>
+(2). <a href="http://wenku.baidu.com/view/20033e124431b90d6c85c718.html">http://wenku.baidu.com/view/20033e124431b90d6c85c718.html</a><br>
+(3). <a href="http://gee.cs.oswego.edu/dl/html/malloc.html">http://gee.cs.oswego.edu/dl/html/malloc.html</a><br>
+(4). <a href="ftp://ftp.cs.utexas.edu/pub/garbage/allocsrv.ps">ftp://ftp.cs.utexas.edu/pub/garbage/allocsrv.ps</a><br>
+Author: chenxiawei@gmail.com<br></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1018,57 +1193,9 @@ git push origin master
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/07/22/hello-world/">Hello World</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-07-22T22:09:00+08:00" pubdate data-updated="true">Jul 22<span>nd</span>, 2012</time>
-        
-         | <a href="/blog/2012/07/22/hello-world/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p> code </p>
-
-
-<p><code>printf("helloworld");</code></p>
-
-<br />
-
-
-<p><img src="/images/ali.jpg" alt="Ali" /></p>
-
-<pre><code>int a, b;
-printf("%d\n", a + b);
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
+    
+      <a class="prev" href="/blog/page/2/">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -1079,6 +1206,10 @@ printf("%d\n", a + b);
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/05/16/ptmalloc/">ptmalloc实现分析</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/09/18/linux-thread-priority/">linux线程优先级</a>
@@ -1096,10 +1227,6 @@ printf("%d\n", a + b);
         <a href="/blog/2012/10/14/check-64bit/">编译时判断系统32位/64位</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2012/08/27/readable-code-1/">The Art of Readable Code (1)</a>
-      </li>
-    
   </ul>
 </section>
 
@@ -1114,7 +1241,7 @@ printf("%d\n", a + b);
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2013 -  -
+  Copyright &copy; 2014 -  -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
