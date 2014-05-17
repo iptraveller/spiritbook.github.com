@@ -14,7 +14,9 @@ categories:
 ## 2. 使用
 ### 2.1 进行代码修改
 在所有malloc操作之前，初始化时调用 mtrace(); 进行初始化
-
+	#include <mcheck.h>
+	mtrace();
+	
 ### 2.2 添加环境变量
 MALLOC_TRACE：表示输出日志的位置 <br>
 (1) 设置全局环境变量 
