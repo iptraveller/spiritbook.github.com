@@ -9,7 +9,8 @@
   <meta name="author" content="">
 
   
-  <meta name="description" content="1. 功能 (1) 跟踪进程内存申请释放过程 (2) 检测内存泄露 (3) 检测内存重复释放，或野指针释放 2. 使用 2.1 进行代码修改 在所有malloc操作之前，初始化时调用 mtrace(); 进行初始化 2.2 添加环境变量 MALLOC_TRACE：表示输出日志的位置 (1) &hellip;">
+  <meta name="description" content="1. 功能 (1) 跟踪进程内存申请释放过程 (2) 检测内存泄露 (3) 检测内存重复释放，或野指针释放 2. 使用 2.1 进行代码修改 在所有malloc操作之前，初始化时调用 mtrace(); 进行初始化 #include &lt;mcheck.h&gt;
+mtrace(); 2.2 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -106,6 +107,10 @@
 <h3>2.1 进行代码修改</h3>
 
 <p>在所有malloc操作之前，初始化时调用 mtrace(); 进行初始化</p>
+
+<pre><code>#include &lt;mcheck.h&gt;
+mtrace();
+</code></pre>
 
 <h3>2.2 添加环境变量</h3>
 
