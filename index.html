@@ -137,38 +137,28 @@ binary为运行的可执行程序，output为环境变量指定的输出文件�
 
 <p>代码中调用mtrace()初始化后 <br>
 (1) 通过环境变量MALLOC_TRACE获取要输出的文件路径，打开文件句柄。 <br>
-(2) 利用malloc_hook机制，hook替换为mtrace内部中的函数来跟踪内存申请释放动作， <br></p>
+(2) 利用malloc_hook机制，hook替换为mtrace内部中的函数来跟踪内存申请释放动作， <br>
+但同时记录保存原有的hook，mtrace只跟踪内存申请释放操作并不替换申请释放内存的方法。 <br></p>
 
-<pre><code>但同时记录保存原有的hook，mtrace只跟踪内存申请释放操作并不替换申请释放内存的方法。 &lt;br&gt;
-  tr_old_free_hook = __free_hook;
+<pre><code>  tr_old_free_hook = __free_hook;
   __free_hook = tr_freehook;
   tr_old_malloc_hook = __malloc_hook;
   __malloc_hook = tr_mallochook;
 </code></pre>
 
-<p>(3) 在tr_mallochook中，调用原有的tr_old_malloc_hook或者直接调用malloc申请内存(没人注册hook) <br></p>
-
-<pre><code>申请成功后，把申请到的指针、大小、调用函数记录到文件中 &lt;br&gt;
-</code></pre>
-
-<p>(4) 在tr_freehook中，调用原有的tr_old_free_hook或者直接调用free释放内存(没人注册hook) <br></p>
-
-<pre><code>把释放的指针、调用函数记录到文件中 &lt;br&gt;
-</code></pre>
+<p>(3) 在tr_mallochook中，调用原有的tr_old_malloc_hook或者直接调用malloc申请内存(没人注册hook) <br>
+申请成功后，把申请到的指针、大小、调用函数记录到文件中 <br>
+(4) 在tr_freehook中，调用原有的tr_old_free_hook或者直接调用free释放内存(没人注册hook) <br>
+把释放的指针、调用函数记录到文件中 <br></p>
 
 <h3>3.2 perl:mtrace</h3>
 
 <p>mtrace是一个perl脚本，对输出文件进行分析，输出可读报告 <br>
-(1) 根据输出文件中的申请释放记录，建立一个hash集合，key为内存地址，value为是否被释放（申请时+1，释放时-1）。 <br></p>
-
-<pre><code>最后遍历集合，输出未被释放的内存地址及对应的申请函数。 &lt;br&gt;
-</code></pre>
-
-<p>(2) 若可执行文件有符号表，则根据输出文件中的函数指针获取函数名进行输出，否则直接输出函数地址。 <br></p>
-
-<pre><code>使用了addr2line操作通过函数地址获取函数位置。(addr2line -e $prog $searchaddr) &lt;br&gt;
-addr2line是GNU Binutils工具集的一部分，可执行文件在目录/usr/bin下 &lt;br&gt;
-</code></pre>
+(1) 根据输出文件中的申请释放记录，建立一个hash集合，key为内存地址，value为是否被释放（申请时+1，释放时-1）。 <br>
+最后遍历集合，输出未被释放的内存地址及对应的申请函数。 <br>
+(2) 若可执行文件有符号表，则根据输出文件中的函数指针获取函数名进行输出，否则直接输出函数地址。 <br>
+使用了addr2line操作通过函数地址获取函数位置。(addr2line -e $prog $searchaddr) <br>
+addr2line是GNU Binutils工具集的一部分，可执行文件在目录/usr/bin下 <br></p>
 
 <h2>4. 样例</h2>
 
