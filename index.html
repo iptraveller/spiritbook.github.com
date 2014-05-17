@@ -123,7 +123,8 @@ shell# ./hello
 
 <p>(3) 代码中设置</p>
 
-<pre><code>setenv("MALLOC_TRACE", "output.txt", 1);
+<pre><code>#include &lt;stdlib.h&gt;
+setenv("MALLOC_TRACE", "output.txt", 1);
 </code></pre>
 
 <h3>2.3 进行结果分析</h3>
@@ -137,7 +138,7 @@ binary为运行的可执行程序，output为环境变量指定的输出文件�
 
 <p>代码中调用mtrace()初始化后 <br>
 (1) 通过环境变量MALLOC_TRACE获取要输出的文件路径，打开文件句柄。 <br>
-(2) 利用malloc_hook机制，hook替换为mtrace内部中的函数来跟踪内存申请释放动作， <br>
+(2) 利用malloc_hook机制，hook替换为mtrace内部中的函数来跟踪内存申请释放动作，
 但同时记录保存原有的hook，mtrace只跟踪内存申请释放操作并不替换申请释放内存的方法。 <br></p>
 
 <pre><code>  tr_old_free_hook = __free_hook;
@@ -146,9 +147,9 @@ binary为运行的可执行程序，output为环境变量指定的输出文件�
   __malloc_hook = tr_mallochook;
 </code></pre>
 
-<p>(3) 在tr_mallochook中，调用原有的tr_old_malloc_hook或者直接调用malloc申请内存(没人注册hook) <br>
+<p>(3) 在tr_mallochook中，调用原有的tr_old_malloc_hook或者直接调用malloc申请内存(没人注册hook)。
 申请成功后，把申请到的指针、大小、调用函数记录到文件中 <br>
-(4) 在tr_freehook中，调用原有的tr_old_free_hook或者直接调用free释放内存(没人注册hook) <br>
+(4) 在tr_freehook中，调用原有的tr_old_free_hook或者直接调用free释放内存(没人注册hook)。
 把释放的指针、调用函数记录到文件中 <br></p>
 
 <h3>3.2 perl:mtrace</h3>
