@@ -5,11 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Linux调试手段 - Ali</title>
+  <title>jemalloc之bitmap - Ali</title>
   <meta name="author" content="">
 
   
-  <meta name="description" content="1. 使用gdb 编译时，使用-g 参数把调试信息（函数名、变量名）加到可执行文件中。 1.1 启动GDB的方法： (1)、gdb &lt;program&gt; 调试&lt;program&gt; (2)、gdb &lt;program&gt; core 调试&lt;program&gt; &hellip;">
+  <meta name="description" content="1. 数据结构： 结构体bitmap_info_s维护位图的管理信息。 struct bitmap_level_s { /* Offset of this level's groups within the array of groups. */ size_t group_offset;
+}; &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://spiritbook.github.com/blog/2013/05/29/linux-debug-skill/">
+  <link rel="canonical" href="http://spiritbook.github.com/blog/2014/06/27/jemalloc-bitmap/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -67,7 +68,7 @@
   
   <header>
     
-      <h1 class="entry-title">Linux调试手段</h1>
+      <h1 class="entry-title">Jemalloc之bitmap</h1>
     
     
       <p class="meta">
@@ -83,7 +84,7 @@
   
 
 
-<time datetime="2013-05-29T21:19:00+08:00" pubdate data-updated="true">May 29<span>th</span>, 2013</time>
+<time datetime="2014-06-27T23:27:00+08:00" pubdate data-updated="true">Jun 27<span>th</span>, 2014</time>
         
          | <a href="#disqus_thread">Comments</a>
         
@@ -92,65 +93,53 @@
   </header>
 
 
-<div class="entry-content"><h2>1. 使用gdb</h2>
+<div class="entry-content"><h2>1. 数据结构：</h2>
 
-<p>编译时，使用-g 参数把调试信息（函数名、变量名）加到可执行文件中。</p>
+<p>结构体bitmap_info_s维护位图的管理信息。<br></p>
 
-<h3>1.1 启动GDB的方法：</h3>
-
-<pre><code>    (1)、gdb &lt;program&gt;       调试&lt;program&gt; 
-    (2)、gdb &lt;program&gt; core  调试&lt;program&gt;生成的core文件
-    (3)、gdb &lt;program&gt; &lt;PID&gt; 调试运行时的&lt;program&gt;
+<pre><code>struct bitmap_level_s {
+    /* Offset of this level's groups within the array of groups. */
+    size_t group_offset;
+};
+struct bitmap_info_s {
+    /* Logical number of bits in bitmap (stored at bottom level). */
+    size_t nbits;
+    /* Number of levels necessary for nbits. */
+    unsigned nlevels;
+    /*
+     * Only the first (nlevels+1) elements are used, and levels are ordered
+     * bottom to top (e.g. the bottom level is stored in levels[0]).
+     */
+    bitmap_level_t levels[BITMAP_MAX_LEVELS+1];
+};
 </code></pre>
 
-<h3>1.2 常用GDB命令:</h3>
+<p>位图的数据信息使用一个长整型的数组保存。<br></p>
 
-<pre><code>    (1)、print [/&lt;fmt&gt;] &lt;expr&gt; (简写p) 显示指定表达式的内容
-            &lt;expr&gt; 显示的表达式。可以为全局变量、局部变量、数组名等。
-            &lt;fmt&gt;  显示的格式。x 为十六进制格式，c 为字符格式等。
-
-    (2)、examine [/&lt;len&gt;/&lt;fmt&gt;/&lt;step&gt;] &lt;addr&gt; (简写x) 显示指定地址内容
-            &lt;addr&gt; 显示的内存地址的起始地址
-            &lt;len&gt; 显示内存的长度
-            &lt;fmt&gt; 显示格式。s 为字符串，x 为十六进制。(缺省为十六进制)
-            &lt;step&gt; 表示一次显示的字节数。b为单字，h为双字，w为四字。(缺省为四字)
-
-    (3)、thread &lt;id&gt; 切换到指定线程
-            &lt;id&gt; 线程编号
-
-    (4)、frame &lt;id&gt; 切换到线程中的指定层次的函数
-            &lt;id&gt; 函数层次
-
-    (5)、backtrace [full] 显示当前线程整个栈回溯信息
-
-    (6)、thread apply all backtrace [full] 显示所有线程的栈回溯信息
-
-    (7)、info reg 查看当前寄存器信息    
-
-    (8)、info symbol &lt;addr&gt; 显示函数地址对应的函数名
-            &lt;addr&gt; 为函数指针地址 
+<pre><code>typedef unsigned long bitmap_t;
 </code></pre>
 
-<p><a href="https://github.com/spiritbook/helloworld/blob/master/xdebug/xsample1.c">GDB使用例子1&#8211;>戳这里</a></p>
+<h2>2. 算法分析</h2>
 
-<h2>2. 使用/proc文件系统</h2>
+<p>bitmap为长整形数组，其中为了能清晰地显示层次，图中分成三层来显示，[]中的下标表示对应level在数组中的起始位置。<br>
+数组中使用1表示空闲，0表示占用。每个块为一个长整型（ulong）的变量，保存32bits的数据信息。<br>
+<img src="/images/je_bmp.jpg" alt="bitmap" />
+以创建一个10000bits的位图为例<br>
+Level 0：一共10000bits 表示位图实际使用情况<br>
+Level 1：一共313bits，分别表示level 0中每个块的使用情况（第N位对应level 0的第N块的使用情况，若对应的该块的所有32bits都被置上，则level 1中对应的为变为0，否则为1）。<br>
+Level 2：一共10bits，分别表示level 1中每个块的使用情况。（最高等级的level肯定只占用了一个块）。<br></p>
 
-<h3>2.1 查看线程陷入在内核中的栈回溯信息：</h3>
+<br>
 
-<pre><code>    cat /proc/&lt;pid&gt;/stack
-</code></pre>
 
-<p>此方法也适用于查看内核线程当前的栈回溯信息</p>
+<p>可以总结为：<br>
+创建一个Nbis的位图时<br>
+1. 总共需要的level级别为log32(N) <br>
+2. 需要使用内存大小为 N + N/32 + N/(32<sup>2)</sup> + … + N/(32<sup>max_level)</sup> bits，比普通位图多占用了一点内存 <br>
+3. 判断整个位图是否是满的，只要比较最高级别level的块是否为0，复杂度为O(1)；普通位图算法需要遍历所有的块来判断，复杂度为O(N/32)。<br>
+4. 查找第一个未被使用的位只需要从高到低查找每个level中的第一个空闲位的位置，复杂度为O(log32(N) * 32)；普通位图算法需要遍历所有的块来判断，复杂度为O(N/32)。<br></p>
 
-<h3>2.2 通过内核函数指针值查找对应函数名：</h3>
-
-<pre><code>    cat /proc/kallsyms | grep &lt;addr&gt;
-    说明：addr 不需要以0x开头
-</code></pre>
-
-<h2>3. 使用反汇编</h2>
-
-<p>TODO</p>
+<p>Author: chenxiawei@gmail.com<br></p>
 </div>
 
 
@@ -173,7 +162,7 @@
   
 
 
-<time datetime="2013-05-29T21:19:00+08:00" pubdate data-updated="true">May 29<span>th</span>, 2013</time>
+<time datetime="2014-06-27T23:27:00+08:00" pubdate data-updated="true">Jun 27<span>th</span>, 2014</time>
       
 
 
@@ -181,7 +170,7 @@
     
       <div class="sharing">
   
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://spiritbook.github.com/blog/2013/05/29/linux-debug-skill/" data-via="" data-counturl="http://spiritbook.github.com/blog/2013/05/29/linux-debug-skill/" >Tweet</a>
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://spiritbook.github.com/blog/2014/06/27/jemalloc-bitmap/" data-via="" data-counturl="http://spiritbook.github.com/blog/2014/06/27/jemalloc-bitmap/" >Tweet</a>
   
   
   
@@ -190,10 +179,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2012/10/14/check-64bit/" title="Previous Post: 编译时判断系统32位/64位">&laquo; 编译时判断系统32位/64位</a>
+        <a class="basic-alignment left" href="/blog/2014/05/17/mtrace/" title="Previous Post: glibc工具之-mtrace">&laquo; glibc工具之-mtrace</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2013/06/01/x86-bt/" title="Next Post: [Linux]X86-32函数调用过程堆栈">[Linux]X86-32函数调用过程堆栈 &raquo;</a>
       
     </p>
   </footer>
@@ -260,8 +247,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://spiritbook.github.com/blog/2013/05/29/linux-debug-skill/';
-        var disqus_url = 'http://spiritbook.github.com/blog/2013/05/29/linux-debug-skill/';
+        var disqus_identifier = 'http://spiritbook.github.com/blog/2014/06/27/jemalloc-bitmap/';
+        var disqus_url = 'http://spiritbook.github.com/blog/2014/06/27/jemalloc-bitmap/';
         var disqus_script = 'embed.js';
       
     (function () {
